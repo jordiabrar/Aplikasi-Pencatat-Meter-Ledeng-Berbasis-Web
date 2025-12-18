@@ -9,7 +9,6 @@ import './App.css';
 function App() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  
   const [isSidebarOpen, setSidebarOpen] = useState(false); 
   const [activeMenu, setActiveMenu] = useState('pencatatan'); 
   const [step, setStep] = useState(1); 
@@ -62,7 +61,7 @@ function App() {
 
   return (
     <div className={`app-container ${isSidebarOpen ? 'sb-open' : 'sb-closed'}`}>
-      {/* Sidebar Overlay (Mobile) */}
+      {/* Overlay untuk Mobile */}
       {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
       <aside className="sidebar">
@@ -84,105 +83,99 @@ function App() {
             <User size={20} /> <span>Profil Akun</span>
           </div>
         </nav>
+        <div className="sidebar-footer">
+          <div className="user-profile-card">
+            <div className="avatar">A</div>
+            <div className="user-info">
+              <p className="u-name">Alta</p>
+              <p className="u-role">Petugas Lapangan</p>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <main className="main-content">
         <header className="top-header">
-          <button className="menu-trigger" onClick={() => setSidebarOpen(true)}>
+          <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
             <Menu size={24} />
           </button>
-          <h1 className="page-title">{activeMenu.toUpperCase()}</h1>
-          <div className="header-status"><div className="online-dot"></div></div>
+          <h1 className="header-title">{activeMenu.toUpperCase()}</h1>
+          <div className="header-right"><div className="online-indicator"></div></div>
         </header>
 
-        <div className="scroll-area">
-          <div className="centered-content">
-            {activeMenu === 'pencatatan' ? (
-              <div className="workflow-pencatatan animate-in">
-                <div className="stepper">
-                  <div className={`step-node ${step >= 1 ? 'active' : ''}`}>1. Pindai</div>
-                  <ChevronRight size={14} className="arrow" />
-                  <div className={`step-node ${step >= 2 ? 'active' : ''}`}>2. Foto</div>
-                  <ChevronRight size={14} className="arrow" />
-                  <div className={`step-node ${step === 3 ? 'active' : ''}`}>3. Simpan</div>
+        <div className="view-port">
+          <div className="app-canvas">
+            {activeMenu === 'pencatatan' && (
+              <div className="pencatatan-flow animate-up">
+                {/* Stepper Center */}
+                <div className="stepper-box">
+                  <div className={`step ${step >= 1 ? 'active' : ''}`}>1. Pindai</div>
+                  <ChevronRight size={14} />
+                  <div className={`step ${step >= 2 ? 'active' : ''}`}>2. Foto</div>
+                  <ChevronRight size={14} />
+                  <div className={`step ${step === 3 ? 'active' : ''}`}>3. Simpan</div>
                 </div>
 
-                <div className="split-layout">
-                  <div className="card-ui camera-box">
-                    <div className="camera-viewfinder">
+                <div className="grid-layout">
+                  {/* Bagian Kiri: Kamera */}
+                  <div className="card-panel visual-box">
+                    <div className="camera-frame">
                       {step < 3 ? (
                         <>
                           <video ref={videoRef} autoPlay playsInline />
-                          <div className={`guide-box ${step === 1 ? 'qr' : 'meter'}`}>
-                            <div className="laser-line"></div>
+                          <div className={`frame-aim ${step === 1 ? 'qr' : 'meter'}`}>
+                            <div className="laser"></div>
                           </div>
                         </>
                       ) : (
-                        <img src={previewImage} alt="Captured" />
+                        <div className="preview-container">
+                           <img src={previewImage} alt="Captured" />
+                        </div>
                       )}
                     </div>
-                    <div className="camera-actions">
+                    <div className="button-area">
                       {step < 3 ? (
-                        <button className="shutter-main" onClick={handleCapture}>
-                          <div className="shutter-circle"></div>
+                        <button className="btn-capture" onClick={handleCapture}>
+                          <div className="shutter-outer"><div className="shutter-inner"></div></div>
                           <span>AMBIL FOTO</span>
                         </button>
                       ) : (
-                        <button className="btn-secondary" onClick={() => setStep(2)}>
-                          <RefreshCcw size={16} /> FOTO ULANG
+                        <button className="btn-redo-full" onClick={() => setStep(2)}>
+                          <RefreshCcw size={18} /> FOTO ULANG
                         </button>
                       )}
                     </div>
                   </div>
 
-                  <div className="card-ui data-panel">
-                    <div className="card-header"><h3>Informasi Laporan</h3></div>
+                  {/* Bagian Kanan: Data */}
+                  <div className="card-panel data-box">
+                    <div className="card-header"><h3>Data Pencatatan</h3></div>
                     <div className="card-body">
                       {step >= 2 && customer && (
-                        <div className="customer-card">
-                          <label>PELANGGAN AKTIF</label>
-                          <h4>{customer.nama}</h4>
-                          <p>{customer.noPel}</p>
+                        <div className="pdam-info-card">
+                          <label>IDENTITAS PELANGGAN</label>
+                          <h4 className="high-contrast-text">{customer.nama}</h4>
+                          <p className="sub-contrast-text">{customer.noPel}</p>
                         </div>
                       )}
                       {step === 3 && (
-                        <div className="input-group">
-                          <label>Angka Kubik Meteran (m³)</label>
-                          <input type="number" value={meterValue} onChange={(e) => setMeterValue(e.target.value)} />
-                          {isProcessing && <div className="loader-text">AI memproses foto...</div>}
+                        <div className="input-pdam-group">
+                          <label>Angka Meteran (m³)</label>
+                          <input type="number" value={meterValue} onChange={(e) => setMeterValue(e.target.value)} placeholder="0000" />
+                          {isProcessing && <div className="loading-bar">Menganalisa...</div>}
                         </div>
                       )}
                     </div>
                     {step === 3 && (
-                      <button className="btn-primary" onClick={() => alert('Data Terkirim')}>
+                      <button className="btn-submit-full" onClick={() => alert('Data Terkirim')}>
                         <Send size={18} /> KIRIM SEKARANG
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-            ) : activeMenu === 'riwayat' ? (
-              <div className="card-ui full-card animate-in">
-                <h2>Riwayat Pencatatan</h2>
-                <div className="history-list">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="history-item">
-                      <div><p>Pelanggan #00{i}</p><span>18 Des 2025</span></div>
-                      <span className="badge-status">Selesai</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="card-ui profile-card animate-in text-center">
-                <div className="avatar-big">A</div>
-                <h2>Alta (Petugas Lapangan)</h2>
-                <div className="profile-menu">
-                  <div className="p-item"><Settings size={18}/> Pengaturan</div>
-                  <div className="p-item logout"><LogOut size={18}/> Keluar</div>
-                </div>
-              </div>
             )}
+            {/* Menu lain akan ditambahkan di sini */}
           </div>
         </div>
       </main>
