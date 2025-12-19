@@ -1,207 +1,183 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Camera, QrCode, Droplets, CheckCircle, RefreshCcw, 
-  Menu, X, Gauge, Send, User, ChevronDown, History, Zap
-} from 'lucide-react';
-import Tesseract from 'tesseract.js';
-import './App.css';
+import React, { useRef, useCallback, useEffect } from "react";
+import { useAppState, useAppDispatch } from "./context/AppContext";
+import { useCamera } from "./hooks/useCamera";
+import { useQRScanner } from "./hooks/useQRScanner";
+import { useOCR } from "./hooks/useOCR";
+import { CustomerService } from "./services/CustomerService";
+import { MOCK_DATABASE } from "./constants/data";
 
-function App() {
-  const videoRef = useRef(null);
+// Layout Components
+import { Sidebar } from "./components/layout/Sidebar";
+import { Header } from "./components/layout/Header";
+import { ErrorAlert } from "./components/layout/ErrorAlert";
+
+// Feature Components
+import { CameraView } from "./components/camera/CameraView";
+import { CustomerInfo } from "./components/customer/CustomerInfo";
+import { MeterInput } from "./components/meter/MeterInput";
+import { HistoryView } from "./components/history/HistoryView";
+
+import "./styles/App.css";
+
+// ============================================================================
+// Scan Page Component (QR or Meter)
+// ============================================================================
+function ScanPage({ mode }) {
+  const state = useAppState();
+  const dispatch = useAppDispatch();
   const canvasRef = useRef(null);
-  const [isSidebarOpen, setSidebarOpen] = useState(false); 
-  const [activeMenu, setActiveMenu] = useState('scan_qr'); // Menu: scan_qr, scan_meter, riwayat
-  const [previewImage, setPreviewImage] = useState(null);
-  const [customer, setCustomer] = useState(null);
-  const [meterValue, setMeterValue] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isPetugasOpen, setIsPetugasOpen] = useState(false);
-  const [selectedPetugas, setSelectedPetugas] = useState('Alta (Kimora)');
 
-  const daftarPetugas = [
-    { name: 'Alta (Kimora)', area: 'Area 01' },
-    { name: 'Budi Gunawan', area: 'Area 02' },
-    { name: 'Siti Aminah', area: 'Area 03' }
-  ];
+  const { videoRef, startCamera, stopCamera, captureImage } = useCamera();
+  const { runOCR } = useOCR();
 
-  // Efek untuk menyalakan kamera hanya pada menu scan
+  // Auto QR scanning (hanya aktif di mode QR dan belum ada customer)
+  useQRScanner(videoRef, canvasRef, mode === "qr" && !state.customer);
+
+  // Start camera on mount, stop on unmount
   useEffect(() => {
-    if (activeMenu === 'scan_qr' || activeMenu === 'scan_meter') {
-      startCamera();
-    }
-  }, [activeMenu]);
+    startCamera();
+    return () => stopCamera();
+  }, [startCamera, stopCamera]);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "environment" } 
+  // Handle manual capture button click
+  const handleCapture = useCallback(() => {
+    const imageData = captureImage(canvasRef.current);
+
+    if (mode === "qr") {
+      // Manual QR scan trigger
+      const qrKeys = Object.keys(MOCK_DATABASE);
+      const randomKey = qrKeys[Math.floor(Math.random() * qrKeys.length)];
+      dispatch({
+        type: "SET_CUSTOMER",
+        payload: MOCK_DATABASE[randomKey],
       });
-      if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) {
-      console.error("Akses kamera ditolak");
+      dispatch({
+        type: "SET_QR_STATUS",
+        payload: "✓ Pelanggan teridentifikasi",
+      });
+    } else if (mode === "meter") {
+      // Trigger OCR for meter reading
+      runOCR(imageData);
     }
-  };
+  }, [mode, captureImage, dispatch, runOCR]);
 
-  const handleCapture = () => {
-    const canvas = canvasRef.current;
-    const video = videoRef.current;
-    if(!video) return;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const data = canvas.toDataURL('image/png');
+  // Handle reset form
+  const handleReset = useCallback(() => {
+    dispatch({ type: "RESET_FORM" });
+    startCamera();
+  }, [dispatch, startCamera]);
 
-    if (activeMenu === 'scan_qr') {
-      // Menu Scan QR: Identifikasi Pelanggan saja
-      setCustomer({ nama: "Budi Setiadi", noPel: "109928374", alamat: "Jl. Tirta Utama No. 8" });
-    } else {
-      // Menu Scan Meter: Memproses OCR
-      setPreviewImage(data);
-      runOCR(data);
+  // Handle submit data
+  const handleSubmit = useCallback(async () => {
+    try {
+      const data = {
+        customer: state.customer,
+        meterValue: state.meterValue,
+        petugas: state.selectedPetugas,
+        timestamp: new Date().toISOString(),
+      };
+
+      const result = await CustomerService.submitMeterReading(data);
+
+      if (result.success) {
+        // Add to history
+        dispatch({
+          type: "ADD_HISTORY",
+          payload: {
+            id: result.id.slice(-3),
+            nama: state.customer?.nama || "Unknown",
+            status: "Terverifikasi",
+            meter: state.meterValue,
+          },
+        });
+
+        // Show success message
+        alert(`✓ Data terkirim!\n\n` + `Pelanggan: ${state.customer?.nama}\n` + `Meteran: ${state.meterValue} m³\n` + `Petugas: ${state.selectedPetugas}`);
+
+        handleReset();
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      dispatch({
+        type: "SET_ERROR",
+        payload: {
+          type: "SUBMIT_ERROR",
+          message: "Gagal mengirim data. Silakan coba lagi.",
+        },
+      });
     }
-  };
-
-  const runOCR = (img) => {
-    setIsProcessing(true);
-    Tesseract.recognize(img, 'eng').then(({ data: { text } }) => {
-      const numbers = text.replace(/[^0-9]/g, "");
-      setMeterValue(numbers);
-      setIsProcessing(false);
-    });
-  };
+  }, [state, dispatch, handleReset]);
 
   return (
-    <div className={`app-container ${isSidebarOpen ? 'sb-open' : 'sb-closed'}`}>
-      {/* Sidebar Overlay (Mobile) */}
-      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+    <div className="main-grid animate-up">
+      {/* Camera Panel */}
+      <CameraView videoRef={videoRef} onCapture={handleCapture} mode={mode} />
 
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="brand-logo"><Droplets size={22} /></div>
-          <span>KIMORA <span className="text-blue">FLOW</span></span>
+      {/* Form Panel */}
+      <div className="card-glass form-panel">
+        <div className="card-header">
+          <h3>Data Lapangan</h3>
         </div>
-        
-        <nav className="nav-menu">
-          <div className={`nav-item ${activeMenu === 'scan_qr' ? 'active' : ''}`} 
-               onClick={() => { setActiveMenu('scan_qr'); setSidebarOpen(false); setCustomer(null); }}>
-            <QrCode size={20} /> <span>Pindai QR Pelanggan</span>
-          </div>
-          <div className={`nav-item ${activeMenu === 'scan_meter' ? 'active' : ''}`} 
-               onClick={() => { setActiveMenu('scan_meter'); setSidebarOpen(false); setPreviewImage(null); }}>
-            <Camera size={20} /> <span>Pindai Angka Meter</span>
-          </div>
-          <div className={`nav-item ${activeMenu === 'riwayat' ? 'active' : ''}`} 
-               onClick={() => { setActiveMenu('riwayat'); setSidebarOpen(false); }}>
-            <History size={20} /> <span>Riwayat Tugas</span>
-          </div>
 
-          <div className="nav-dropdown-wrapper">
-            <div className="nav-item dropdown-trigger" onClick={() => setIsPetugasOpen(!isPetugasOpen)}>
-              <User size={20} /> <span>Petugas</span>
-              <ChevronDown size={14} className={`arrow-icon ${isPetugasOpen ? 'rotate' : ''}`} />
-            </div>
-            {isPetugasOpen && (
-              <div className="dropdown-list-container">
-                {daftarPetugas.map((p, i) => (
-                  <div key={i} className="dropdown-list-item" onClick={() => { setSelectedPetugas(p.name); setIsPetugasOpen(false); }}>
-                    <p className="p-name-small">{p.name}</p>
-                    <p className="p-area-small">{p.area}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </nav>
+        <div className="card-body">
+          {state.customer ? (
+            <>
+              {/* Customer Information */}
+              <CustomerInfo customer={state.customer} onReset={handleReset} showReset={mode === "qr"} />
 
-        <div className="sidebar-footer">
-          <div className="user-profile-summary">
-            <div className="p-avatar-small">{selectedPetugas[0]}</div>
-            <div className="p-info-small">
-              <p className="p-name-bold">{selectedPetugas}</p>
-              <p className="p-status-tag">Petugas Aktif</p>
-            </div>
-          </div>
+              {/* Meter Input (only for meter mode) */}
+              {mode === "meter" && (
+                <MeterInput
+                  value={state.meterValue}
+                  onChange={(val) =>
+                    dispatch({
+                      type: "SET_METER_VALUE",
+                      payload: val,
+                    })
+                  }
+                  isProcessing={state.isProcessing}
+                  onSubmit={handleSubmit}
+                  onReset={handleReset}
+                />
+              )}
+            </>
+          ) : (
+            <p className="hint-text">{mode === "qr" ? 'Arahkan kamera ke QR code pelanggan atau tekan tombol "AMBIL QR"' : "Scan QR pelanggan terlebih dahulu"}</p>
+          )}
         </div>
-      </aside>
+      </div>
 
-      <main className="main-content">
-        <header className="top-header">
-          <button className="menu-trigger" onClick={() => setSidebarOpen(true)}>
-            <Menu size={24} />
-          </button>
-          
-          {/* Judul Muncul di Tengah Desktop & Mobile */}
-          <h1 className="header-title-center">
-            {activeMenu === 'scan_qr' ? 'PINDAI QR' : activeMenu === 'scan_meter' ? 'PINDAI METER' : 'RIWAYAT'}
-          </h1>
-          
-          <div className="header-right"><div className="online-dot"></div></div>
-        </header>
-
-        <div className="scroll-container">
-          <div className="content-layout">
-            {(activeMenu === 'scan_qr' || activeMenu === 'scan_meter') ? (
-              <div className="main-grid animate-up">
-                <div className="card-glass visual-panel">
-                  <div className="camera-viewfinder">
-                    <video ref={videoRef} autoPlay playsInline />
-                    <div className={`aim-guide ${activeMenu === 'scan_qr' ? 'qr' : 'meter'}`}>
-                      <div className="laser-line"></div>
-                    </div>
-                  </div>
-                  <div className="action-area">
-                    <button className="btn-capture-pdam" onClick={handleCapture}>
-                      <div className="shutter-ring"><div className="shutter-dot"></div></div>
-                      <span>AMBIL {activeMenu === 'scan_qr' ? 'QR' : 'ANGKA'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="card-glass form-panel">
-                  <div className="card-header"><h3>Data Lapangan</h3></div>
-                  <div className="card-body">
-                    {customer ? (
-                      <div className="pdam-info-card-high">
-                        <label>HASIL IDENTIFIKASI</label>
-                        <h4 className="text-heavy-dark">{customer.nama}</h4>
-                        <p className="text-heavy-gray">{customer.noPel} • {customer.alamat}</p>
-                      </div>
-                    ) : activeMenu === 'scan_qr' ? (
-                      <p className="hint-text">Arahkan kamera ke QR pelanggan.</p>
-                    ) : null}
-
-                    {activeMenu === 'scan_meter' && (
-                      <div className="input-field-group">
-                        <label>Indeks Meteran (m³)</label>
-                        <input type="number" value={meterValue} onChange={(e) => setMeterValue(e.target.value)} placeholder="0000" />
-                        {isProcessing ? <div className="ocr-status">Membaca...</div> : meterValue && <p className="ai-status"><Zap size={12}/> Terisi otomatis</p>}
-                        <button className="btn-submit-main" onClick={() => alert('Laporan Dikirim')}>
-                          <Send size={18} /> KIRIM DATA
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="card-glass full-card animate-up">
-                <h2>Riwayat Tugas</h2>
-                <div className="history-list">
-                  {[1,2,3].map(i => (
-                    <div key={i} className="list-item">
-                      <div><p className="item-t">Pelanggan #00{i}</p><span>Sukses Terverifikasi</span></div>
-                      <span className="badge-ok">TERKIRIM</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      {/* Hidden canvas for image capture */}
+      <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
   );
 }
 
-export default App;
+// ============================================================================
+// Main App Component
+// ============================================================================
+export default function App() {
+  const state = useAppState();
+  const dispatch = useAppDispatch();
+
+  return (
+    <div className="app-container">
+      <Sidebar />
+
+      <main className="main-content">
+        <Header />
+
+        <ErrorAlert error={state.error} onClose={() => dispatch({ type: "SET_ERROR", payload: null })} />
+
+        <div className="scroll-container">
+          <div className="content-layout">
+            {/* Render different pages based on active menu */}
+            {state.activeMenu === "scan_qr" && <ScanPage mode="qr" />}
+            {state.activeMenu === "scan_meter" && <ScanPage mode="meter" />}
+            {state.activeMenu === "riwayat" && <HistoryView />}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
