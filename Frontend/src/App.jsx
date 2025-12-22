@@ -16,6 +16,7 @@ import { CameraView } from "./components/camera/CameraView";
 import { CustomerInfo } from "./components/customer/CustomerInfo";
 import { MeterInput } from "./components/meter/MeterInput";
 import { HistoryView } from "./components/history/HistoryView";
+import { FotoKeadaanRumah } from "./components/foto/FotoKeadaanRumah";
 
 // ============================================================================
 // Scan Page Component (QR or Meter)
@@ -196,6 +197,7 @@ export default function App() {
             {/* Render different pages based on active menu */}
             {state.activeMenu === "scan_qr" && <ScanPage mode="qr" />}
             {state.activeMenu === "scan_meter" && <ScanPage mode="meter" />}
+            {state.activeMenu === "foto_keadaan_rumah" && <FotoKeadaanRumah />}
             {state.activeMenu === "riwayat" && <HistoryView />}
           </div>
         </div>

@@ -50,6 +50,12 @@ export function Sidebar() {
             <span>Pindai Angka Meter</span>
           </div>
 
+          {/* Foto Keadaan Rumah */}
+          <div className={`nav-item ${state.activeMenu === "foto_keadaan_rumah" ? "active" : ""}`} onClick={() => handleMenuClick("foto_keadaan_rumah")} role="button" tabIndex={0}>
+            <Camera size={20} />
+            <span>Foto Keadaan Rumah</span>
+          </div>
+
           {/* History Menu */}
           <div className={`nav-item ${state.activeMenu === "riwayat" ? "active" : ""}`} onClick={() => handleMenuClick("riwayat")} role="button" tabIndex={0}>
             <History size={20} />

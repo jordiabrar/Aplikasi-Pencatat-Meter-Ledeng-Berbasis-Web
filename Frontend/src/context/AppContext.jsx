@@ -17,6 +17,8 @@ const initialState = {
   qrScanStatus: "",
   error: null,
   history: INITIAL_HISTORY,
+  fotoRumah: null,
+  fotoRumahPreview: null,
 };
 
 // Reducer Function
