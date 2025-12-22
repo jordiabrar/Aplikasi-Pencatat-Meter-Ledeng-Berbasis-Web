@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { QrCode, Camera, History, User, ChevronDown, Droplets } from "lucide-react";
+import { QrCode, Camera, History, User, ChevronDown, Droplet } from "lucide-react";
 import { useAppState, useAppDispatch } from "../../context/AppContext";
 import { PETUGAS_LIST } from "../../constants/data";
 
@@ -13,8 +13,8 @@ export function Sidebar() {
     dispatch({ type: "SET_SIDEBAR", payload: false });
   };
 
-  const handlePetugasSelect = (name) => {
-    dispatch({ type: "SET_PETUGAS", payload: name });
+  const handlePetugasSelect = (nama) => {
+    dispatch({ type: "SET_PETUGAS", payload: nama });
     setIsPetugasOpen(false);
   };
 
@@ -25,14 +25,15 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside className={`sidebar ${state.isSidebarOpen ? "open" : ""}`}>
-        {/* Brand Logo */}
+        {/* Brand Logo PDAM */}
         <div className="sidebar-brand">
-          <div className="brand-logo">
-            <Droplets size={22} />
+          <div className="brand-logo pdam-logo">
+            <Droplet size={24} />
           </div>
-          <span>
-            KIMORA <span className="text-blue">FLOW</span>
-          </span>
+          <div className="brand-text">
+            <div className="brand-title">PDAM</div>
+            <div className="brand-subtitle">Pencatat Meter</div>
+          </div>
         </div>
 
         {/* Navigation Menu */}
@@ -66,9 +67,9 @@ export function Sidebar() {
             {isPetugasOpen && (
               <div className="dropdown-list-container">
                 {PETUGAS_LIST.map((p, i) => (
-                  <div key={i} className="dropdown-list-item" onClick={() => handlePetugasSelect(p.name)} role="button" tabIndex={0}>
-                    <p className="p-name-small">{p.name}</p>
-                    <p className="p-area-small">{p.area}</p>
+                  <div key={i} className="dropdown-list-item" onClick={() => handlePetugasSelect(p.nama)} role="button" tabIndex={0}>
+                    <p className="p-name-small">{p.nama}</p>
+                    <p className="p-area-small">{p.area_tugas}</p>
                   </div>
                 ))}
               </div>

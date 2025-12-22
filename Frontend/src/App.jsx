@@ -4,7 +4,7 @@ import { useCamera } from "./hooks/useCamera";
 import { useQRScanner } from "./hooks/useQRScanner";
 import { useOCR } from "./hooks/useOCR";
 import { CustomerService } from "./services/CustomerService";
-import { MOCK_DATABASE } from "./constants/data";
+import { MOCK_DATABASE, PETUGAS_LIST } from "./constants/data";
 
 // Layout Components
 import { Sidebar } from "./components/layout/Sidebar";
@@ -16,8 +16,6 @@ import { CameraView } from "./components/camera/CameraView";
 import { CustomerInfo } from "./components/customer/CustomerInfo";
 import { MeterInput } from "./components/meter/MeterInput";
 import { HistoryView } from "./components/history/HistoryView";
-
-import "./styles/App.css";
 
 // ============================================================================
 // Scan Page Component (QR or Meter)
@@ -41,25 +39,39 @@ function ScanPage({ mode }) {
 
   // Handle manual capture button click
   const handleCapture = useCallback(() => {
-    const imageData = captureImage(canvasRef.current);
+    captureImage(canvasRef.current);
 
     if (mode === "qr") {
-      // Manual QR scan trigger
+      // Manual QR scan trigger - pilih random customer dari database
       const qrKeys = Object.keys(MOCK_DATABASE);
       const randomKey = qrKeys[Math.floor(Math.random() * qrKeys.length)];
+      const customer = MOCK_DATABASE[randomKey];
+
       dispatch({
         type: "SET_CUSTOMER",
-        payload: MOCK_DATABASE[randomKey],
+        payload: customer,
       });
       dispatch({
         type: "SET_QR_STATUS",
         payload: "✓ Pelanggan teridentifikasi",
       });
     } else if (mode === "meter") {
+      // ✅ FIX: Jika belum ada customer, pilih random dulu
+      if (!state.customer) {
+        const qrKeys = Object.keys(MOCK_DATABASE);
+        const randomKey = qrKeys[Math.floor(Math.random() * qrKeys.length)];
+        const customer = MOCK_DATABASE[randomKey];
+
+        dispatch({
+          type: "SET_CUSTOMER",
+          payload: customer,
+        });
+      }
+
       // Trigger OCR for meter reading
-      runOCR(imageData);
+      runOCR();
     }
-  }, [mode, captureImage, dispatch, runOCR]);
+  }, [mode, captureImage, dispatch, runOCR, state.customer]);
 
   // Handle reset form
   const handleReset = useCallback(() => {
@@ -70,29 +82,39 @@ function ScanPage({ mode }) {
   // Handle submit data
   const handleSubmit = useCallback(async () => {
     try {
-      const data = {
-        customer: state.customer,
-        meterValue: state.meterValue,
-        petugas: state.selectedPetugas,
-        timestamp: new Date().toISOString(),
+      // Get petugas ID dari petugas yang dipilih
+      const selectedPetugasData = PETUGAS_LIST.find((p) => p.nama === state.selectedPetugas);
+
+      // Prepare data sesuai struktur database METER_READINGS
+      const meterData = {
+        petugas_id: selectedPetugasData?.id || 1,
+        pelanggan_id: state.customer?.id,
+        nilai_meter: parseInt(state.meterValue),
+        foto_meter: null, // Bisa diisi dengan base64 atau URL foto
+        metode_input: "ocr", // 'qr_scan' | 'manual' | 'ocr'
+        catatan: null,
       };
 
-      const result = await CustomerService.submitMeterReading(data);
+      const result = await CustomerService.submitMeterReading(meterData);
 
       if (result.success) {
         // Add to history
         dispatch({
           type: "ADD_HISTORY",
           payload: {
-            id: result.id.slice(-3),
-            nama: state.customer?.nama || "Unknown",
-            status: "Terverifikasi",
-            meter: state.meterValue,
+            id: result.data.id,
+            petugas_id: result.data.petugas_id,
+            pelanggan_id: result.data.pelanggan_id,
+            no_pelanggan: state.customer?.no_pelanggan,
+            nama_pelanggan: state.customer?.nama,
+            nilai_meter: result.data.nilai_meter,
+            metode_input: result.data.metode_input,
+            created_at: result.data.created_at,
           },
         });
 
         // Show success message
-        alert(`✓ Data terkirim!\n\n` + `Pelanggan: ${state.customer?.nama}\n` + `Meteran: ${state.meterValue} m³\n` + `Petugas: ${state.selectedPetugas}`);
+        alert(`✓ Data terkirim!\n\n` + `Pelanggan: ${state.customer?.nama}\n` + `No. Pelanggan: ${state.customer?.no_pelanggan}\n` + `Meteran: ${state.meterValue} m³\n` + `Petugas: ${state.selectedPetugas}`);
 
         handleReset();
       }
@@ -110,7 +132,7 @@ function ScanPage({ mode }) {
 
   return (
     <div className="main-grid animate-up">
-      {/* Camera Panel */}
+      {/* Camera Panel - ✅ ALWAYS SHOW */}
       <CameraView videoRef={videoRef} onCapture={handleCapture} mode={mode} />
 
       {/* Form Panel */}
@@ -142,7 +164,7 @@ function ScanPage({ mode }) {
               )}
             </>
           ) : (
-            <p className="hint-text">{mode === "qr" ? 'Arahkan kamera ke QR code pelanggan atau tekan tombol "AMBIL QR"' : "Scan QR pelanggan terlebih dahulu"}</p>
+            <p className="hint-text">{mode === "qr" ? 'Arahkan kamera ke QR code pelanggan atau tekan tombol "AMBIL QR"' : 'Tekan tombol "AMBIL ANGKA" untuk memindai meter. Data pelanggan akan otomatis terdeteksi.'}</p>
           )}
         </div>
       </div>

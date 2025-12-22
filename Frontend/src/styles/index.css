@@ -18,11 +18,18 @@
   padding: 0;
 }
 
+html,
+body {
+  overflow-x: hidden; /* ✅ Prevent horizontal scroll */
+  max-width: 100vw;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: var(--bg-color);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight on mobile */
 }
 
 /* ============================================================================
@@ -44,6 +51,7 @@ body {
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
   animation: fadeIn 0.3s;
+  touch-action: none; /* ✅ Prevent scroll behind overlay */
 }
 
 @keyframes fadeIn {
@@ -76,6 +84,9 @@ body {
   transform: translateX(0);
 }
 
+/* ============================================================================
+   SIDEBAR - BRAND LOGO PDAM
+   ============================================================================ */
 .sidebar-brand {
   padding: 18px 20px;
   display: flex;
@@ -97,15 +108,47 @@ body {
   min-height: 38px;
 }
 
+.brand-logo.pdam-logo {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
 .text-blue {
   color: var(--primary);
 }
 
-/* Navigation */
+/* ============================================================================
+   SIDEBAR - NAVIGATION
+   ============================================================================ */
 .nav-menu {
   flex: 1;
   padding: 12px 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* ✅ Smooth scroll on iOS */
+  min-height: 0; /* ✅ FIX: Allow flex item to shrink below content size */
 }
 
 .nav-item {
@@ -118,6 +161,7 @@ body {
   transition: all 0.2s;
   user-select: none;
   font-size: 14px;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .nav-item:active {
@@ -189,10 +233,14 @@ body {
   margin-top: 2px;
 }
 
-/* Sidebar Footer */
+/* ============================================================================
+   SIDEBAR - FOOTER
+   ============================================================================ */
 .sidebar-footer {
   padding: 15px;
   border-top: 1px solid #1e293b;
+  flex-shrink: 0; /* ✅ FIX: Prevent footer from being hidden */
+  background: var(--dark); /* ✅ Ensure footer has background */
 }
 
 .user-profile-summary {
@@ -264,6 +312,9 @@ body {
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
+  overflow: hidden; /* ✅ Prevent overflow */
+  text-overflow: ellipsis; /* ✅ Show ... when too long */
+  max-width: calc(100% - 100px); /* ✅ Reserve space for buttons */
 }
 
 .menu-trigger {
@@ -278,6 +329,7 @@ body {
   transition: background 0.2s;
   min-width: 40px;
   min-height: 40px;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .menu-trigger:active {
@@ -330,6 +382,7 @@ body {
   color: #991b1b;
   font-size: 14px;
   font-weight: 600;
+  word-break: break-word; /* ✅ Break long error messages */
 }
 
 .error-close {
@@ -341,6 +394,7 @@ body {
   display: flex;
   min-width: 24px;
   min-height: 24px;
+  flex-shrink: 0; /* ✅ Prevent button shrink */
 }
 
 /* Scroll Container */
@@ -351,6 +405,7 @@ body {
   display: flex;
   justify-content: center;
   padding: 16px 12px;
+  -webkit-overflow-scrolling: touch; /* ✅ Smooth scroll on iOS */
 }
 
 .content-layout {
@@ -393,6 +448,7 @@ body {
 .camera-viewfinder {
   position: relative;
   aspect-ratio: 1/1;
+  max-height: 70vh; /* ✅ Limit height on mobile landscape */
   background: #000;
   border-radius: 12px;
   overflow: hidden;
@@ -459,6 +515,7 @@ video {
   color: var(--dark);
   transition: transform 0.2s;
   padding: 8px;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .btn-capture-pdam:active {
@@ -518,6 +575,7 @@ video {
   font-weight: 800;
   font-size: 1.1rem;
   margin: 6px 0;
+  word-break: break-word; /* ✅ Break long names */
 }
 
 .text-heavy-gray {
@@ -525,6 +583,7 @@ video {
   font-weight: 700;
   font-size: 0.85rem;
   line-height: 1.5;
+  word-break: break-word; /* ✅ Break long addresses */
 }
 
 .hint-text {
@@ -555,7 +614,7 @@ input[type="number"] {
   padding: 14px;
   border-radius: 12px;
   border: 2px solid #cbd5e1;
-  font-size: 20px;
+  font-size: 22px; /* ✅ Increased from 20px for better readability */
   font-weight: 800;
   color: var(--dark);
   transition: border-color 0.2s;
@@ -594,6 +653,7 @@ input[type="number"]::-webkit-outer-spin-button {
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  flex-shrink: 0; /* ✅ Prevent spinner shrink */
 }
 
 @keyframes spin {
@@ -632,6 +692,7 @@ input[type="number"]::-webkit-outer-spin-button {
   gap: 10px;
   transition: all 0.2s;
   min-height: 52px;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .btn-submit-main:active:not(:disabled) {
@@ -662,6 +723,7 @@ input[type="number"]::-webkit-outer-spin-button {
   gap: 8px;
   transition: all 0.2s;
   min-height: 46px;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .btn-reset:active {
@@ -698,6 +760,7 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
   border-left: 4px solid var(--primary);
   transition: all 0.2s;
+  gap: 12px; /* ✅ Add gap between content and badge */
 }
 
 .list-item:active {
@@ -710,6 +773,7 @@ input[type="number"]::-webkit-outer-spin-button {
   color: var(--dark);
   font-size: 14px;
   margin-bottom: 4px;
+  word-break: break-word; /* ✅ Break long names */
 }
 
 .list-item span {
@@ -725,6 +789,7 @@ input[type="number"]::-webkit-outer-spin-button {
   font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
+  flex-shrink: 0; /* ✅ Prevent badge shrink */
 }
 
 /* ============================================================================
@@ -787,6 +852,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
   .camera-viewfinder {
     aspect-ratio: 4/3;
+    max-height: none; /* ✅ Remove height limit on desktop */
   }
 
   .card-glass {
@@ -858,6 +924,19 @@ input[type="number"]::-webkit-outer-spin-button {
 @media (min-width: 1440px) {
   .content-layout {
     max-width: 1400px;
+  }
+}
+
+/* ============================================================================
+   LANDSCAPE MOBILE FIX (≤768px height)
+   ============================================================================ */
+@media (max-height: 768px) and (orientation: landscape) {
+  .camera-viewfinder {
+    max-height: 50vh; /* ✅ Further limit on landscape mobile */
+  }
+
+  .scroll-container {
+    padding: 12px 16px; /* ✅ Reduce padding */
   }
 }
 

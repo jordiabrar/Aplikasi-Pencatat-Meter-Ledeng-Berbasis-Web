@@ -15,7 +15,7 @@ export function Header() {
       case "riwayat":
         return "RIWAYAT";
       default:
-        return "KIMORA FLOW";
+        return "PDAM - PENCATAT METER";
     }
   };
 
