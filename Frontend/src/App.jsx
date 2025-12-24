@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect, useState } from "react";
 import { useAppState, useAppDispatch } from "./context/AppContext";
 import { useCamera } from "./hooks/useCamera";
 import { useQRScanner } from "./hooks/useQRScanner";
@@ -17,6 +17,7 @@ import { CustomerInfo } from "./components/customer/CustomerInfo";
 import { MeterInput } from "./components/meter/MeterInput";
 import { HistoryView } from "./components/history/HistoryView";
 import { FotoKeadaanRumah } from "./components/foto/FotoKeadaanRumah";
+import { MeterCropEditor } from "./components/camera/MeterCropEditor";
 
 // ============================================================================
 // Scan Page Component (QR or Meter)
@@ -29,6 +30,10 @@ function ScanPage({ mode }) {
   const { videoRef, startCamera, stopCamera, captureImage } = useCamera();
   const { runOCR } = useOCR();
 
+  // State untuk crop editor (khusus meter)
+  const [showCropEditor, setShowCropEditor] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+
   // Auto QR scanning (hanya aktif di mode QR dan belum ada customer)
   useQRScanner(videoRef, canvasRef, mode === "qr" && !state.customer);
 
@@ -40,7 +45,7 @@ function ScanPage({ mode }) {
 
   // Handle manual capture button click
   const handleCapture = useCallback(() => {
-    captureImage(canvasRef.current);
+    const imageData = captureImage(canvasRef.current);
 
     if (mode === "qr") {
       // Manual QR scan trigger - pilih random customer dari database
@@ -69,10 +74,35 @@ function ScanPage({ mode }) {
         });
       }
 
-      // Trigger OCR for meter reading
-      runOCR();
+      // Show crop editor instead of direct OCR
+      setCapturedImage(imageData);
+      setShowCropEditor(true);
+      stopCamera();
     }
-  }, [mode, captureImage, dispatch, runOCR, state.customer]);
+  }, [mode, captureImage, dispatch, state.customer, stopCamera]);
+
+  // Handle crop confirm
+  const handleCropConfirm = useCallback(
+    (croppedImage) => {
+      setShowCropEditor(false);
+      setCapturedImage(null);
+
+      // Run OCR on cropped image (could pass croppedImage for analysis)
+      console.log("Cropped image ready for OCR:", croppedImage);
+      runOCR();
+
+      // Restart camera
+      startCamera();
+    },
+    [runOCR, startCamera]
+  );
+
+  // Handle crop cancel
+  const handleCropCancel = useCallback(() => {
+    setShowCropEditor(false);
+    setCapturedImage(null);
+    startCamera();
+  }, [startCamera]);
 
   // Handle reset form
   const handleReset = useCallback(() => {
@@ -133,6 +163,9 @@ function ScanPage({ mode }) {
 
   return (
     <div className="main-grid animate-up">
+      {/* Crop Editor Modal (Khusus Meter) */}
+      {mode === "meter" && showCropEditor && capturedImage && <MeterCropEditor imageData={capturedImage} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
+
       {/* Camera Panel - ✅ ALWAYS SHOW */}
       <CameraView videoRef={videoRef} onCapture={handleCapture} mode={mode} />
 
