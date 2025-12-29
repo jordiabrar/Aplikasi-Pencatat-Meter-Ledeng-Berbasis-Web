@@ -6,7 +6,7 @@ import { INITIAL_HISTORY } from "../constants/data";
 const AppStateContext = createContext();
 const AppDispatchContext = createContext();
 
-// Initial State
+// Initial State - LENGKAP
 const initialState = {
   isSidebarOpen: false,
   activeMenu: "scan_qr",
@@ -17,61 +17,130 @@ const initialState = {
   qrScanStatus: "",
   error: null,
   history: INITIAL_HISTORY,
-  fotoRumah: null,
-  fotoRumahPreview: null,
+
+  // Data Foto & Keluhan
+  fotoMeter: null, // Base64 string foto meter
+  fotoRumah: null, // Base64 string foto rumah
+  fotoRumahPreview: null, // Preview foto rumah
+  keluhan: null, // { keluhan: [], detail: "", foto: [] }
+  catatan: "", // Catatan tambahan
 };
 
-// Reducer Function
+// Reducer Function - LENGKAP
 function appReducer(state, action) {
   switch (action.type) {
-    // Sidebar Actions
+    // ========================================
+    // SIDEBAR ACTIONS
+    // ========================================
     case "TOGGLE_SIDEBAR":
       return { ...state, isSidebarOpen: !state.isSidebarOpen };
 
     case "SET_SIDEBAR":
       return { ...state, isSidebarOpen: action.payload };
 
-    // Navigation
+    // ========================================
+    // NAVIGATION
+    // ========================================
     case "SET_ACTIVE_MENU":
       return {
         ...state,
         activeMenu: action.payload,
-        customer: null,
         error: null,
       };
 
-    // Customer Data
+    // ========================================
+    // CUSTOMER DATA
+    // ========================================
     case "SET_CUSTOMER":
       return { ...state, customer: action.payload, error: null };
 
-    // Meter Value
+    // ========================================
+    // METER VALUE
+    // ========================================
     case "SET_METER_VALUE":
       return { ...state, meterValue: action.payload };
 
-    // Processing State
+    // ========================================
+    // PROCESSING STATE
+    // ========================================
     case "SET_PROCESSING":
       return { ...state, isProcessing: action.payload };
 
-    // Petugas Selection
+    // ========================================
+    // PETUGAS SELECTION
+    // ========================================
     case "SET_PETUGAS":
       return { ...state, selectedPetugas: action.payload };
 
-    // QR Scanner Status
+    // ========================================
+    // QR SCANNER STATUS
+    // ========================================
     case "SET_QR_STATUS":
       return { ...state, qrScanStatus: action.payload };
 
-    // Error Handling
+    // ========================================
+    // ERROR HANDLING
+    // ========================================
     case "SET_ERROR":
       return { ...state, error: action.payload };
 
-    // History Management
+    // ========================================
+    // HISTORY MANAGEMENT
+    // ========================================
     case "ADD_HISTORY":
       return {
         ...state,
         history: [action.payload, ...state.history],
       };
 
-    // Reset Form
+    // ========================================
+    // FOTO METER
+    // ========================================
+    case "SET_FOTO_METER":
+      return {
+        ...state,
+        fotoMeter: action.payload,
+      };
+
+    // ========================================
+    // FOTO RUMAH
+    // ========================================
+    case "SET_FOTO_RUMAH":
+      return {
+        ...state,
+        fotoRumah: action.payload,
+      };
+
+    // ========================================
+    // FOTO RUMAH PREVIEW
+    // ========================================
+    case "SET_FOTO_RUMAH_PREVIEW":
+      return {
+        ...state,
+        fotoRumahPreview: action.payload,
+      };
+
+    // ========================================
+    // KELUHAN
+    // ========================================
+    case "SET_KELUHAN":
+      return {
+        ...state,
+        keluhan: action.payload,
+      };
+
+    // ========================================
+    // CATATAN
+    // ========================================
+    case "SET_CATATAN":
+      return {
+        ...state,
+        catatan: action.payload,
+      };
+
+    // ========================================
+    // RESET FORM - HAPUS SEMUA DATA
+    // ========================================
     case "RESET_FORM":
       return {
         ...state,
@@ -80,6 +149,11 @@ function appReducer(state, action) {
         qrScanStatus: "",
         error: null,
         isProcessing: false,
+        fotoMeter: null,
+        fotoRumah: null,
+        fotoRumahPreview: null,
+        keluhan: null,
+        catatan: "",
       };
 
     default:

@@ -3,8 +3,7 @@ import { useAppState, useAppDispatch } from "./context/AppContext";
 import { useCamera } from "./hooks/useCamera";
 import { useQRScanner } from "./hooks/useQRScanner";
 import { useOCR } from "./hooks/useOCR";
-import { CustomerService } from "./services/CustomerService";
-import { MOCK_DATABASE, PETUGAS_LIST } from "./constants/data";
+import { MOCK_DATABASE } from "./constants/data";
 
 // Layout Components
 import { Sidebar } from "./components/layout/Sidebar";
@@ -18,6 +17,7 @@ import { MeterInput } from "./components/meter/MeterInput";
 import { HistoryView } from "./components/history/HistoryView";
 import { FotoKeadaanRumah } from "./components/foto/FotoKeadaanRumah";
 import { MeterCropEditor } from "./components/camera/MeterCropEditor";
+import { KeluhanInput } from "./components/keluhan/KeluhanInput";
 
 // ============================================================================
 // Scan Page Component (QR or Meter)
@@ -59,10 +59,10 @@ function ScanPage({ mode }) {
       });
       dispatch({
         type: "SET_QR_STATUS",
-        payload: "✓ Pelanggan teridentifikasi",
+        payload: "✅ Pelanggan teridentifikasi",
       });
     } else if (mode === "meter") {
-      // ✅ FIX: Jika belum ada customer, pilih random dulu
+      // Jika belum ada customer, pilih random dulu
       if (!state.customer) {
         const qrKeys = Object.keys(MOCK_DATABASE);
         const randomKey = qrKeys[Math.floor(Math.random() * qrKeys.length)];
@@ -73,6 +73,12 @@ function ScanPage({ mode }) {
           payload: customer,
         });
       }
+
+      // Simpan foto meter ke state
+      dispatch({
+        type: "SET_FOTO_METER",
+        payload: imageData,
+      });
 
       // Show crop editor instead of direct OCR
       setCapturedImage(imageData);
@@ -87,22 +93,35 @@ function ScanPage({ mode }) {
       setShowCropEditor(false);
       setCapturedImage(null);
 
-      // Run OCR on cropped image (could pass croppedImage for analysis)
+      // Update foto meter dengan cropped image
+      dispatch({
+        type: "SET_FOTO_METER",
+        payload: croppedImage,
+      });
+
+      // Run OCR on cropped image
       console.log("Cropped image ready for OCR:", croppedImage);
       runOCR();
 
       // Restart camera
       startCamera();
     },
-    [runOCR, startCamera]
+    [runOCR, startCamera, dispatch]
   );
 
   // Handle crop cancel
   const handleCropCancel = useCallback(() => {
     setShowCropEditor(false);
     setCapturedImage(null);
+
+    // Clear foto meter jika cancel
+    dispatch({
+      type: "SET_FOTO_METER",
+      payload: null,
+    });
+
     startCamera();
-  }, [startCamera]);
+  }, [startCamera, dispatch]);
 
   // Handle reset form
   const handleReset = useCallback(() => {
@@ -110,95 +129,47 @@ function ScanPage({ mode }) {
     startCamera();
   }, [dispatch, startCamera]);
 
-  // Handle submit data
-  const handleSubmit = useCallback(async () => {
-    try {
-      // Get petugas ID dari petugas yang dipilih
-      const selectedPetugasData = PETUGAS_LIST.find((p) => p.nama === state.selectedPetugas);
-
-      // Prepare data sesuai struktur database METER_READINGS
-      const meterData = {
-        petugas_id: selectedPetugasData?.id || 1,
-        pelanggan_id: state.customer?.id,
-        nilai_meter: parseInt(state.meterValue),
-        foto_meter: null, // Bisa diisi dengan base64 atau URL foto
-        metode_input: "ocr", // 'qr_scan' | 'manual' | 'ocr'
-        catatan: null,
-      };
-
-      const result = await CustomerService.submitMeterReading(meterData);
-
-      if (result.success) {
-        // Add to history
-        dispatch({
-          type: "ADD_HISTORY",
-          payload: {
-            id: result.data.id,
-            petugas_id: result.data.petugas_id,
-            pelanggan_id: result.data.pelanggan_id,
-            no_pelanggan: state.customer?.no_pelanggan,
-            nama_pelanggan: state.customer?.nama,
-            nilai_meter: result.data.nilai_meter,
-            metode_input: result.data.metode_input,
-            created_at: result.data.created_at,
-          },
-        });
-
-        // Show success message
-        alert(`✓ Data terkirim!\n\n` + `Pelanggan: ${state.customer?.nama}\n` + `No. Pelanggan: ${state.customer?.no_pelanggan}\n` + `Meteran: ${state.meterValue} m³\n` + `Petugas: ${state.selectedPetugas}`);
-
-        handleReset();
-      }
-    } catch (error) {
-      console.error("Submit error:", error);
-      dispatch({
-        type: "SET_ERROR",
-        payload: {
-          type: "SUBMIT_ERROR",
-          message: "Gagal mengirim data. Silakan coba lagi.",
-        },
-      });
-    }
-  }, [state, dispatch, handleReset]);
-
   return (
     <div className="main-grid animate-up">
       {/* Crop Editor Modal (Khusus Meter) */}
       {mode === "meter" && showCropEditor && capturedImage && <MeterCropEditor imageData={capturedImage} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />}
 
-      {/* Camera Panel - ✅ ALWAYS SHOW */}
+      {/* Camera Panel */}
       <CameraView videoRef={videoRef} onCapture={handleCapture} mode={mode} />
 
       {/* Form Panel */}
       <div className="card-glass form-panel">
         <div className="card-header">
-          <h3>Data Lapangan</h3>
+          <h3>{mode === "qr" ? "Data Pelanggan" : "Data Lapangan"}</h3>
         </div>
 
         <div className="card-body">
-          {state.customer ? (
-            <>
-              {/* Customer Information */}
-              <CustomerInfo customer={state.customer} onReset={handleReset} showReset={mode === "qr"} />
+          {/* ========================================
+              MODE QR: Tampilkan Customer Info
+              ======================================== */}
+          {mode === "qr" && <>{state.customer ? <CustomerInfo customer={state.customer} onReset={handleReset} showReset={true} /> : <p className="hint-text">Arahkan kamera ke QR code pelanggan atau tekan tombol "AMBIL QR"</p>}</>}
 
-              {/* Meter Input (only for meter mode) */}
-              {mode === "meter" && (
-                <MeterInput
-                  value={state.meterValue}
-                  onChange={(val) =>
-                    dispatch({
-                      type: "SET_METER_VALUE",
-                      payload: val,
-                    })
-                  }
-                  isProcessing={state.isProcessing}
-                  onSubmit={handleSubmit}
-                  onReset={handleReset}
-                />
-              )}
+          {/* ========================================
+              MODE METER: Input Meter + Keluhan
+              ======================================== */}
+          {mode === "meter" && (
+            <>
+              {/* Meter Input */}
+              <MeterInput
+                value={state.meterValue}
+                onChange={(val) =>
+                  dispatch({
+                    type: "SET_METER_VALUE",
+                    payload: val,
+                  })
+                }
+                isProcessing={state.isProcessing}
+                onReset={handleReset}
+              />
+
+              {/* Keluhan Input */}
+              <KeluhanInput />
             </>
-          ) : (
-            <p className="hint-text">{mode === "qr" ? 'Arahkan kamera ke QR code pelanggan atau tekan tombol "AMBIL QR"' : 'Tekan tombol "AMBIL ANGKA" untuk memindai meter. Data pelanggan akan otomatis terdeteksi.'}</p>
           )}
         </div>
       </div>

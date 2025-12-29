@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useEffect, useState } from "react";
-import { Camera, Upload, Trash2, Home } from "lucide-react";
+import { Camera, CheckCircle, Trash2, Home } from "lucide-react";
 import { useAppState, useAppDispatch } from "../../context/AppContext";
 import { MOCK_DATABASE } from "../../constants/data";
 
@@ -9,7 +9,7 @@ export function FotoKeadaanRumah() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  const [capturedPhotos, setCapturedPhotos] = useState([]);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [cameraError, setCameraError] = useState(null);
 
   const stopCamera = useCallback(() => {
@@ -105,41 +105,30 @@ export function FotoKeadaanRumah() {
         timestamp: new Date().toISOString(),
       };
 
-      setCapturedPhotos((prev) => [newPhoto, ...prev]);
+      setCapturedPhoto(newPhoto);
+
+      // ⭐ SAVE TO GLOBAL STATE
+      dispatch({
+        type: "SET_FOTO_RUMAH",
+        payload: imageData,
+      });
     }
   }, [captureImage, state.customer, dispatch]);
 
-  const handleDeletePhoto = (photoId) => {
-    setCapturedPhotos((prev) => prev.filter((p) => p.id !== photoId));
+  const handleDeletePhoto = () => {
+    setCapturedPhoto(null);
+
+    // ⭐ CLEAR FROM GLOBAL STATE
+    dispatch({
+      type: "SET_FOTO_RUMAH",
+      payload: null,
+    });
+
+    startCamera();
   };
 
-  const handleSubmit = useCallback(async () => {
-    if (capturedPhotos.length === 0) return;
-
-    try {
-      // Simulasi submit ke backend
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      alert(`✓ Data terkirim!\n\n` + `Pelanggan: ${state.customer?.nama}\n` + `No. Pelanggan: ${state.customer?.no_pelanggan}\n` + `Jumlah Foto: ${capturedPhotos.length}\n` + `Petugas: ${state.selectedPetugas}`);
-
-      // Reset
-      setCapturedPhotos([]);
-      dispatch({ type: "RESET_FORM" });
-      startCamera();
-    } catch (error) {
-      console.error("Submit error:", error);
-      dispatch({
-        type: "SET_ERROR",
-        payload: {
-          type: "SUBMIT_ERROR",
-          message: "Gagal mengirim data. Silakan coba lagi.",
-        },
-      });
-    }
-  }, [capturedPhotos, state.customer, state.selectedPetugas, dispatch, startCamera]);
-
   const handleReset = useCallback(() => {
-    setCapturedPhotos([]);
+    setCapturedPhoto(null);
     dispatch({ type: "RESET_FORM" });
     startCamera();
   }, [dispatch, startCamera]);
@@ -184,7 +173,11 @@ export function FotoKeadaanRumah() {
             <span>AMBIL FOTO</span>
           </button>
 
-          {capturedPhotos.length > 0 && <div className="qr-status">📸 {capturedPhotos.length} foto tersimpan</div>}
+          {capturedPhoto && (
+            <div className="qr-status" style={{ background: "#d1fae5", color: "#065f46" }}>
+              <CheckCircle size={16} /> Foto tersimpan
+            </div>
+          )}
         </div>
       </div>
 
@@ -195,90 +188,111 @@ export function FotoKeadaanRumah() {
         </div>
 
         <div className="card-body">
-          {capturedPhotos.length > 0 || state.customer ? (
+          {capturedPhoto ? (
             <>
-              {/* Photo Gallery */}
-              {capturedPhotos.length > 0 && (
-                <div style={{ marginTop: "16px" }}>
-                  <label style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a", display: "block", marginBottom: "8px" }}>FOTO TERSIMPAN ({capturedPhotos.length})</label>
+              {/* Photo Preview */}
+              <div style={{ marginTop: "16px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 800, color: "#0f172a", display: "block", marginBottom: "8px" }}>FOTO TERSIMPAN</label>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px", marginBottom: "16px" }}>
-                    {capturedPhotos.map((photo) => (
-                      <div
-                        key={photo.id}
-                        style={{
-                          position: "relative",
-                          aspectRatio: "1/1",
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                          border: "2px solid #cbd5e1",
-                        }}
-                      >
-                        <img
-                          src={photo.image}
-                          alt="Foto Rumah"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                        <button
-                          onClick={() => handleDeletePhoto(photo.id)}
-                          style={{
-                            position: "absolute",
-                            top: "4px",
-                            right: "4px",
-                            background: "#ef4444",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            padding: "4px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                          aria-label="Delete photo"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                        <div
-                          style={{
-                            position: "absolute",
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
-                            padding: "4px 6px",
-                            fontSize: "9px",
-                            color: "white",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {formatDate(photo.timestamp)}
-                        </div>
-                      </div>
-                    ))}
+                <div
+                  style={{
+                    position: "relative",
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    border: "2px solid #10b981",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <img
+                    src={capturedPhoto.image}
+                    alt="Foto Rumah"
+                    style={{
+                      width: "100%",
+                      display: "block",
+                    }}
+                  />
+                  <button
+                    onClick={handleDeletePhoto}
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      background: "#ef4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "8px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    aria-label="Delete photo"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
+                      padding: "8px 12px",
+                      fontSize: "11px",
+                      color: "white",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {formatDate(capturedPhoto.timestamp)}
                   </div>
-
-                  {/* Submit Button */}
-                  <button className="btn-submit-main" onClick={handleSubmit} disabled={capturedPhotos.length === 0}>
-                    <Upload size={18} /> KIRIM DATA ({capturedPhotos.length} FOTO)
-                  </button>
-
-                  {/* Reset Button */}
-                  <button className="btn-reset" onClick={handleReset}>
-                    <Camera size={16} /> Ganti Pelanggan
-                  </button>
                 </div>
-              )}
+
+                {/* Customer Info */}
+                {state.customer && (
+                  <div
+                    style={{
+                      background: "#f0f9ff",
+                      padding: "14px",
+                      borderRadius: "10px",
+                      marginBottom: "16px",
+                      borderLeft: "4px solid #0ea5e9",
+                    }}
+                  >
+                    <div style={{ fontSize: "11px", fontWeight: 800, color: "#0284c7", marginBottom: "6px" }}>PELANGGAN</div>
+                    <div style={{ fontSize: "15px", fontWeight: 800, color: "#0c4a6e", marginBottom: "4px" }}>{state.customer.nama}</div>
+                    <div style={{ fontSize: "13px", color: "#334155" }}>No. {state.customer.no_pelanggan}</div>
+                  </div>
+                )}
+
+                {/* Success Message */}
+                <div
+                  style={{
+                    background: "#d1fae5",
+                    border: "2px solid #10b981",
+                    borderRadius: "10px",
+                    padding: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <CheckCircle size={20} style={{ color: "#059669", flexShrink: 0 }} />
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#065f46" }}>Foto rumah berhasil disimpan! Lanjutkan ke menu Review untuk mengirim data.</div>
+                </div>
+
+                {/* Reset Button */}
+                <button className="btn-reset" onClick={handleReset}>
+                  <Camera size={16} /> Ganti Foto / Pelanggan
+                </button>
+              </div>
             </>
           ) : (
             <div style={{ marginTop: "16px", textAlign: "center", padding: "32px 16px", background: "#f8fafc", borderRadius: "12px", border: "2px dashed #cbd5e1" }}>
               <Home size={32} style={{ color: "#94a3b8", margin: "0 auto 12px" }} />
-              <p style={{ color: "#64748b", fontSize: "13px", fontWeight: 600 }}>Ambil foto kondisi rumah</p>
-              <p style={{ color: "#94a3b8", fontSize: "11px", marginTop: "4px" }}>Tekan tombol "AMBIL FOTO" di kiri</p>
+              <p style={{ color: "#64748b", fontSize: "13px", fontWeight: 600 }}>Ambil foto kondisi rumah pelanggan</p>
+              <p style={{ color: "#94a3b8", fontSize: "11px", marginTop: "4px" }}>Tekan tombol "AMBIL FOTO" di sebelah kiri</p>
             </div>
           )}
         </div>

@@ -12,6 +12,8 @@ export function Header() {
         return "PINDAI QR";
       case "scan_meter":
         return "PINDAI METER";
+      case "foto_keadaan_rumah":
+        return "FOTO RUMAH";
       case "riwayat":
         return "RIWAYAT";
       default:
