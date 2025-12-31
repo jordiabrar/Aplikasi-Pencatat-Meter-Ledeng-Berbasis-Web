@@ -12,6 +12,11 @@ function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+  };
+
   // =====================
   // BELUM LOGIN
   // =====================
@@ -39,12 +44,37 @@ function App() {
   // SUDAH LOGIN
   // =====================
   return (
-    <Routes>
-      <Route path="/scan" element={<ScanPage user={user} />} />
-      <Route path="/input-kubik" element={<InputKubik />} />
-      <Route path="*" element={<Navigate to="/scan" />} />
-    </Routes>
+    <>
+      {/* HEADER */}
+      <div style={styles.header}>
+        <span>Halo, {user.username || "User"}</span>
+        <button onClick={handleLogout} style={styles.logout}>
+          Logout
+        </button>
+      </div>
+
+      <Routes>
+        <Route path="/scan" element={<ScanPage user={user} />} />
+        <Route path="/input-kubik" element={<InputKubik />} />
+        <Route path="*" element={<Navigate to="/scan" />} />
+      </Routes>
+    </>
   );
 }
+
+const styles = {
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "12px 20px",
+    backgroundColor: "#f5f5f5",
+    borderBottom: "1px solid #ddd",
+  },
+  logout: {
+    padding: "6px 12px",
+    cursor: "pointer",
+  },
+};
 
 export default App;

@@ -33,6 +33,9 @@ class PemakaianMeter(db.Model):
     periode_bulan = db.Column(db.Integer, nullable=False)
     periode_tahun = db.Column(db.Integer, nullable=False)
 
+    foto_meteran = db.Column(db.String(255))
+    foto_rumah = db.Column(db.String(255))
+
     tanggal_catat = db.Column(db.DateTime, default=datetime.utcnow)
     petugas = db.Column(db.String(100))
     keterangan = db.Column(db.Text)
@@ -40,6 +43,15 @@ class PemakaianMeter(db.Model):
     pelanggan = db.relationship(
         "Pelanggan",
         backref="riwayat_pemakaian"
+    )
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "pelanggan_id",
+            "periode_bulan",
+            "periode_tahun",
+            name="uniq_pelanggan_periode"
+        ),
     )
 
 

@@ -1,9 +1,12 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from models import PencatatMeter
 from db import db
 
 auth_blueprint = Blueprint("auth", __name__)
 
+# =========================
+# SIGNUP
+# =========================
 @auth_blueprint.route("/signup", methods=["POST"])
 def signup():
     data = request.json
@@ -31,6 +34,7 @@ def signup():
     db.session.commit()
 
     return jsonify({
+        "success": True,
         "message": "Signup berhasil",
         "user": {
             "id": user.id,
@@ -40,6 +44,9 @@ def signup():
     })
 
 
+# =========================
+# LOGIN
+# =========================
 @auth_blueprint.route("/login", methods=["POST"])
 def login():
     data = request.json
@@ -47,13 +54,61 @@ def login():
     username = data.get("username")
     password = data.get("password")
 
+    if not username or not password:
+        return jsonify({
+            "success": False,
+            "message": "Username dan password wajib diisi"
+        }), 400
+
     user = PencatatMeter.query.filter_by(username=username).first()
 
     if not user or not user.check_password(password):
-        return jsonify({"message": "Username atau password salah"}), 401
+        return jsonify({
+            "success": False,
+            "message": "Username atau password salah"
+        }), 401
+
+    # simpan ke session
+    session["user_id"] = user.id
+    session["username"] = user.username
 
     return jsonify({
+        "success": True,
         "message": "Login berhasil",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    })
+
+
+# =========================
+# LOGOUT
+# =========================
+@auth_blueprint.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({
+        "success": True,
+        "message": "Logout berhasil"
+    })
+
+
+# =========================
+# CEK LOGIN (OPTIONAL)
+# =========================
+@auth_blueprint.route("/me", methods=["GET"])
+def me():
+    if "user_id" not in session:
+        return jsonify({
+            "logged_in": False
+        }), 401
+
+    user = PencatatMeter.query.get(session["user_id"])
+
+    return jsonify({
+        "logged_in": True,
         "user": {
             "id": user.id,
             "username": user.username,
