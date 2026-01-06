@@ -12,6 +12,10 @@ function ScanPage({ user }) {
     });
   };
 
+  const keStatusPelanggan = () => {
+    navigate("/status-pelanggan");
+  };
+
   return (
     <div className="container">
       <h1>Sistem Meter Air</h1>
@@ -19,6 +23,17 @@ function ScanPage({ user }) {
       <p>
         Login sebagai: <b>{user.username}</b>
       </p>
+
+      <button
+        onClick={keStatusPelanggan}
+        style={{
+          marginBottom: 16,
+          padding: "8px 12px",
+          cursor: "pointer",
+        }}
+      >
+        Lihat Status Pelanggan Bulan Ini
+      </button>
 
       <QrScanner onSuccess={handleSuccess} />
       <hr />

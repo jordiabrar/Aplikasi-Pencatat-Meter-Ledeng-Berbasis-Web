@@ -144,3 +144,55 @@ def rata_rata_3_bulan(pelanggan_id):
         "success": True,
         "rata_rata": rata_rata
     })
+
+
+@pemakaian_blueprint.route("/pemakaian/status-bulan-ini", methods=["GET"])
+def status_pemakaian_bulan_ini():
+    now = datetime.now()
+    bulan = now.month
+    tahun = now.year
+
+    subquery = (
+        db.session.query(PemakaianMeter.pelanggan_id)
+        .filter(
+            PemakaianMeter.periode_bulan == bulan,
+            PemakaianMeter.periode_tahun == tahun
+        )
+        .subquery()
+    )
+
+    sudah_dicatat = (
+        Pelanggan.query
+        .filter(Pelanggan.id.in_(subquery))
+        .all()
+    )
+
+    belum_dicatat = (
+        Pelanggan.query
+        .filter(~Pelanggan.id.in_(subquery))
+        .all()
+    )
+
+    return jsonify({
+        "bulan": bulan,
+        "tahun": tahun,
+        "sudah_dicatat": [
+            {
+                "id": p.id,
+                "nama": p.nama_pelanggan,
+                "nomor_seri_meter": p.nomor_seri_meter,
+                "alamat": p.alamat
+            }
+            for p in sudah_dicatat
+        ],
+        "belum_dicatat": [
+            {
+                "id": p.id,
+                "nama": p.nama_pelanggan,
+                "nomor_seri_meter": p.nomor_seri_meter,
+                "alamat": p.alamat
+            }
+            for p in belum_dicatat
+        ]
+    })
+

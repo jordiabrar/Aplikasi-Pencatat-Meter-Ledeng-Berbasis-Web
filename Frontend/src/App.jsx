@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ScanPage from "./pages/ScanPage";
 import InputKubik from "./pages/InputKubik";
+import PelangganStatus from "./pages/PelangganStatus";
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -56,6 +57,7 @@ function App() {
       <Routes>
         <Route path="/scan" element={<ScanPage user={user} />} />
         <Route path="/input-kubik" element={<InputKubik />} />
+        <Route path="/status-pelanggan" element={<PelangganStatus />} />
         <Route path="*" element={<Navigate to="/scan" />} />
       </Routes>
     </>
