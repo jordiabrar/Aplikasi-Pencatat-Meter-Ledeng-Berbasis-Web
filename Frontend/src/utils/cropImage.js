@@ -14,17 +14,7 @@ export async function getCroppedImg(imageSrc, crop) {
   canvas.width = width;
   canvas.height = height;
 
-  ctx.drawImage(
-    image,
-    Math.floor(crop.x),
-    Math.floor(crop.y),
-    width,
-    height,
-    0,
-    0,
-    width,
-    height
-  );
+  ctx.drawImage(image, Math.floor(crop.x), Math.floor(crop.y), width, height, 0, 0, width, height);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(

@@ -43,18 +43,14 @@ function ImageCropper({ imageSrc, onCrop }) {
 
   const handleStart = (e) => {
     e.preventDefault();
-    const pos = e.touches
-      ? getTouchPos(e)
-      : { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+    const pos = e.touches ? getTouchPos(e) : { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
     setStartPos(pos);
     setDragging(true);
   };
 
   const handleMove = (e) => {
     if (!dragging || !startPos) return;
-    const pos = e.touches
-      ? getTouchPos(e)
-      : { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
+    const pos = e.touches ? getTouchPos(e) : { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
     const newRect = {
       x: Math.min(startPos.x, pos.x),
       y: Math.min(startPos.y, pos.y),
@@ -65,7 +61,7 @@ function ImageCropper({ imageSrc, onCrop }) {
     draw(newRect);
   };
 
-  const handleEnd = (e) => {
+  const handleEnd = () => {
     setDragging(false);
   };
 
@@ -80,33 +76,14 @@ function ImageCropper({ imageSrc, onCrop }) {
     const scaleX = imgObj.width / canvasRef.current.width;
     const scaleY = imgObj.height / canvasRef.current.height;
 
-    ctx.drawImage(
-      imgObj,
-      rect.x * scaleX,
-      rect.y * scaleY,
-      rect.w * scaleX,
-      rect.h * scaleY,
-      0,
-      0,
-      rect.w,
-      rect.h
-    );
+    ctx.drawImage(imgObj, rect.x * scaleX, rect.y * scaleY, rect.w * scaleX, rect.h * scaleY, 0, 0, rect.w, rect.h);
 
     onCrop(canvas.toDataURL("image/jpeg"));
   };
 
   return (
     <div>
-      <canvas
-        ref={canvasRef}
-        style={{ border: "1px solid black", touchAction: "none" }}
-        onTouchStart={handleStart}
-        onTouchMove={handleMove}
-        onTouchEnd={handleEnd}
-        onMouseDown={handleStart}
-        onMouseMove={handleMove}
-        onMouseUp={handleEnd}
-      />
+      <canvas ref={canvasRef} style={{ border: "1px solid black", touchAction: "none" }} onTouchStart={handleStart} onTouchMove={handleMove} onTouchEnd={handleEnd} onMouseDown={handleStart} onMouseMove={handleMove} onMouseUp={handleEnd} />
       <button onClick={handleCrop} style={{ marginTop: "10px" }}>
         Crop dan Lanjutkan OCR
       </button>

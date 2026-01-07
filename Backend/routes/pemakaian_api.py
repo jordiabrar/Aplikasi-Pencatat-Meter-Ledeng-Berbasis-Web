@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from datetime import datetime
 from models import PemakaianMeter, Pelanggan
 from db import db
@@ -7,15 +7,11 @@ from werkzeug.utils import secure_filename
 
 pemakaian_blueprint = Blueprint("pemakaian", __name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-BASE_URL = "http://localhost:5000"
-
 
 @pemakaian_blueprint.route("/pemakaian", methods=["POST"])
 def tambah_pemakaian():
     data = request.form
+    upload_folder = current_app.config["UPLOAD_FOLDER"]
 
     username_petugas = data.get("petugas")
     if not username_petugas:
@@ -56,12 +52,12 @@ def tambah_pemakaian():
     if foto_meteran:
         filename = secure_filename(foto_meteran.filename)
         meter_path = f"meteran_{pelanggan.id}_{timestamp}_{filename}"
-        foto_meteran.save(os.path.join(UPLOAD_FOLDER, meter_path))
+        foto_meteran.save(os.path.join(upload_folder, meter_path))
 
     if foto_rumah:
         filename = secure_filename(foto_rumah.filename)
         rumah_path = f"rumah_{pelanggan.id}_{timestamp}_{filename}"
-        foto_rumah.save(os.path.join(UPLOAD_FOLDER, rumah_path))
+        foto_rumah.save(os.path.join(upload_folder, rumah_path))
 
     pemakaian = PemakaianMeter(
         pelanggan_id=pelanggan.id,
@@ -106,11 +102,11 @@ def pemakaian_3_bulan(pelanggan_id):
             "pemakaian_kubik": p.pemakaian_kubik,
             "petugas": p.petugas,
             "foto_meteran": (
-                f"{BASE_URL}/uploads/{p.foto_meteran}"
+                f"{request.host_url}uploads/{p.foto_meteran}"
                 if p.foto_meteran else None
             ),
             "foto_rumah": (
-                f"{BASE_URL}/uploads/{p.foto_rumah}"
+                f"{request.host_url}uploads/{p.foto_rumah}"
                 if p.foto_rumah else None
             ),
         }

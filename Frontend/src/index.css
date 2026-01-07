@@ -1,57 +1,25 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
 }
 
-body {
-  background-color: #0f172a;
-  color: white;
-  min-height: 100vh;
+@layer components {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-}
-
-h1 {
-  margin-bottom: 12px;
-}
-
-.result {
-  margin-top: 16px;
-  padding: 10px;
-  background: #1e293b;
-  border-radius: 8px;
-  word-break: break-all;
-}
-
-button {
-  margin-top: 12px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #22c55e;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #16a34a;
-}
-
-/* Hilangkan dropdown kamera */
+/* Hilangkan dropdown kamera QR Scanner */
 #html5-qrcode-select-camera {
   display: none !important;
 }
 
-/* Hilangkan teks "Select Camera (x)" yang ADA DI ATAS select */
+/* Hilangkan teks "Select Camera" */
 #qr-reader span[style*="margin-right"] {
   display: none !important;
 }
-

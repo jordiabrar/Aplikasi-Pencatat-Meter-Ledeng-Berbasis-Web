@@ -1,5 +1,8 @@
-import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./hooks/useAuth";
+
+import AuthLayout from "./layouts/AuthLayout";
+import MainLayout from "./layouts/MainLayout";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -8,15 +11,7 @@ import InputKubik from "./pages/InputKubik";
 import PelangganStatus from "./pages/PelangganStatus";
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-  };
+  const { user, login, logout } = useAuth();
 
   // =====================
   // BELUM LOGIN
@@ -24,18 +19,10 @@ function App() {
   if (!user) {
     return (
       <Routes>
-        <Route
-          path="/login"
-          element={
-            <Login
-              onLogin={(u) => {
-                setUser(u);
-                localStorage.setItem("user", JSON.stringify(u));
-              }}
-            />
-          }
-        />
-        <Route path="/signup" element={<Signup />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login onLogin={login} />} />
+          <Route path="/signup" element={<Signup />} />
+        </Route>
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     );
@@ -45,38 +32,15 @@ function App() {
   // SUDAH LOGIN
   // =====================
   return (
-    <>
-      {/* HEADER */}
-      <div style={styles.header}>
-        <span>Halo, {user.username || "User"}</span>
-        <button onClick={handleLogout} style={styles.logout}>
-          Logout
-        </button>
-      </div>
-
-      <Routes>
+    <Routes>
+      <Route element={<MainLayout user={user} onLogout={logout} />}>
         <Route path="/scan" element={<ScanPage user={user} />} />
         <Route path="/input-kubik" element={<InputKubik />} />
         <Route path="/status-pelanggan" element={<PelangganStatus />} />
         <Route path="*" element={<Navigate to="/scan" />} />
-      </Routes>
-    </>
+      </Route>
+    </Routes>
   );
 }
-
-const styles = {
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 20px",
-    backgroundColor: "#f5f5f5",
-    borderBottom: "1px solid #ddd",
-  },
-  logout: {
-    padding: "6px 12px",
-    cursor: "pointer",
-  },
-};
 
 export default App;
