@@ -3,6 +3,7 @@ import { useState } from "react";
 import { API_BASE_URL } from "../api";
 import { Card, Button, Input, Alert, Badge } from "../components/ui";
 import { MONTHS } from "../constants";
+import { ExclamationTriangleIcon, ArrowLeftIcon, ChartBarIcon, CameraIcon, XMarkIcon, HomeIcon, ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 
 function InputKubik() {
   const location = useLocation();
@@ -27,14 +28,10 @@ function InputKubik() {
   if (!pelanggan) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+        <ExclamationTriangleIcon className="w-16 h-16 text-gray-400 mb-4" />
         <p className="text-gray-600 mb-4">Data pelanggan tidak ditemukan</p>
         <Button onClick={() => navigate("/scan")} variant="secondary">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeftIcon className="w-5 h-5 mr-2" />
           Kembali ke Scan
         </Button>
       </div>
@@ -177,9 +174,7 @@ function InputKubik() {
           </p>
         </div>
         <Button onClick={() => navigate("/scan")} variant="secondary" size="md" className="w-full sm:w-auto">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeftIcon className="w-5 h-5 mr-2" />
           Kembali
         </Button>
       </div>
@@ -227,14 +222,7 @@ function InputKubik() {
                 <p className="text-4xl font-bold text-blue-600">{pemakaian}</p>
                 <p className="text-sm text-gray-600">meter kubik</p>
               </div>
-              <svg className="w-16 h-16 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
+              <ChartBarIcon className="w-16 h-16 text-blue-300" />
             </div>
           </div>
 
@@ -248,7 +236,12 @@ function InputKubik() {
                 Menghitung...
               </>
             ) : (
-              <>📊 Gunakan Rata-rata 3 Bulan</>
+              <>
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+                Gunakan Rata-rata 3 Bulan
+              </>
             )}
           </Button>
         </div>
@@ -275,9 +268,7 @@ function InputKubik() {
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 shadow-lg transition-all opacity-0 group-hover:opacity-100"
                     title="Hapus foto"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-5 h-5" />
                   </button>
                   <div className="absolute bottom-2 left-2 right-2 bg-black/50 backdrop-blur-sm text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-all">
                     <p className="truncate">{fotoMeteran?.name || "Foto Meteran"}</p>
@@ -286,15 +277,7 @@ function InputKubik() {
               ) : (
                 <label className="flex flex-col items-center justify-center cursor-pointer py-8">
                   <div className="bg-blue-50 rounded-full p-4 mb-3">
-                    <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                      />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                    <CameraIcon className="w-8 h-8 text-blue-500" />
                   </div>
                   <span className="text-sm font-medium text-gray-700 mb-1">Upload Foto Meteran</span>
                   <span className="text-xs text-gray-500">Click atau tap untuk memilih foto</span>
@@ -322,9 +305,7 @@ function InputKubik() {
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 shadow-lg transition-all opacity-0 group-hover:opacity-100"
                     title="Hapus foto"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-5 h-5" />
                   </button>
                   <div className="absolute bottom-2 left-2 right-2 bg-black/50 backdrop-blur-sm text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-all">
                     <p className="truncate">{fotoRumah?.name || "Foto Rumah"}</p>
@@ -333,9 +314,7 @@ function InputKubik() {
               ) : (
                 <label className="flex flex-col items-center justify-center cursor-pointer py-8">
                   <div className="bg-green-50 rounded-full p-4 mb-3">
-                    <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
+                    <HomeIcon className="w-8 h-8 text-green-500" />
                   </div>
                   <span className="text-sm font-medium text-gray-700 mb-1">Upload Foto Rumah</span>
                   <span className="text-xs text-gray-500">Click atau tap untuk memilih foto</span>
@@ -360,16 +339,14 @@ function InputKubik() {
             </>
           ) : (
             <>
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-              </svg>
+              <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
               Simpan Pemakaian
             </>
           )}
         </Button>
         <Button onClick={loadRiwayat} variant="secondary" size="lg">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
           </svg>
           Lihat Riwayat
         </Button>

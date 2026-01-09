@@ -23,7 +23,10 @@ function QrScanner({ onSuccess }) {
   };
 
   const fetchById = async (id) => {
-    if (!/^\d+$/.test(id)) {
+    // Trim whitespace and normalize
+    const cleanId = id.trim().replace(/\s+/g, '');
+    
+    if (!/^\d+$/.test(cleanId)) {
       setError("ID pelanggan harus berupa angka");
       return;
     }
@@ -32,7 +35,7 @@ function QrScanner({ onSuccess }) {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API_BASE_URL}/api/pelanggan/id/${id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pelanggan/id/${cleanId}`);
       if (!res.ok) throw new Error("Pelanggan tidak ditemukan");
 
       const data = await res.json();
@@ -161,7 +164,10 @@ function QrScanner({ onSuccess }) {
   }, [onSuccess]);
 
   const handleFetchById = async (id) => {
-    if (!/^\d+$/.test(id)) {
+    // Trim whitespace and normalize
+    const cleanId = id.trim().replace(/\s+/g, '');
+    
+    if (!/^\d+$/.test(cleanId)) {
       setError("ID pelanggan harus berupa angka");
       return;
     }
@@ -170,7 +176,7 @@ function QrScanner({ onSuccess }) {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`${API_BASE_URL}/api/pelanggan/id/${id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pelanggan/id/${cleanId}`);
       if (!res.ok) throw new Error("Pelanggan tidak ditemukan");
 
       const data = await res.json();

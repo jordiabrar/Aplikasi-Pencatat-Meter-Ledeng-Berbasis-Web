@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../api";
 import { Card, Button, Badge, Alert } from "../components/ui";
 import { MONTHS } from "../constants";
-import { 
-  ArrowLeftIcon, 
-  CheckCircleIcon, 
-  ClockIcon, 
-  ChartBarIcon 
-} from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, CheckCircleIcon, ClockIcon, ChartBarIcon } from "@heroicons/react/24/solid";
 
 function PelangganStatus() {
   const navigate = useNavigate();
@@ -133,9 +128,7 @@ function PelangganStatus() {
               onClick={() => setActiveTab("belum")}
               className={`
                 py-3 sm:py-4 px-4 sm:px-6 border-b-3 font-semibold text-sm sm:text-base transition-all duration-300 transform hover:scale-105 flex items-center whitespace-nowrap
-                ${activeTab === "belum" 
-                  ? "border-yellow-600 text-yellow-700 bg-yellow-50/50" 
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50"}
+                ${activeTab === "belum" ? "border-yellow-600 text-yellow-700 bg-yellow-50/50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50"}
               `}
             >
               <ClockIcon className="w-5 h-5 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
@@ -149,9 +142,7 @@ function PelangganStatus() {
               onClick={() => setActiveTab("sudah")}
               className={`
                 py-3 sm:py-4 px-4 sm:px-6 border-b-3 font-semibold text-sm sm:text-base transition-all duration-300 transform hover:scale-105 flex items-center whitespace-nowrap
-                ${activeTab === "sudah" 
-                  ? "border-green-600 text-green-700 bg-green-50/50" 
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50"}
+                ${activeTab === "sudah" ? "border-green-600 text-green-700 bg-green-50/50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50"}
               `}
             >
               <CheckCircleIcon className="w-5 h-5 sm:w-6 sm:h-6 mr-1 sm:mr-2" />
