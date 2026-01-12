@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API_BASE_URL } from "../api";
 import { Card, Button, Input, Alert, Badge } from "../components/ui";
 import { MONTHS } from "../constants";
@@ -47,6 +47,28 @@ function InputKubik() {
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
+
+  useEffect(() => {
+    if (!pelanggan) return;
+
+    const fetchMeterTerakhir = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/pemakaian/${pelanggan.id}/last`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          setMeterAwal(String(data.meter_akhir));
+        }
+      } catch {
+        // diamkan saja, berarti belum ada data sebelumnya
+      }
+    };
+
+    fetchMeterTerakhir();
+  }, [pelanggan]);
+
 
   const handleFotoMeteranChange = (e) => {
     const file = e.target.files[0];

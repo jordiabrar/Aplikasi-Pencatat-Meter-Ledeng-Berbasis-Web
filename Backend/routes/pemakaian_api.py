@@ -266,3 +266,28 @@ def status_pemakaian_bulan_ini():
             for p in belum_dicatat
         ]
     })
+@pemakaian_blueprint.route(
+    "/pemakaian/<int:pelanggan_id>/last",
+    methods=["GET"]
+)
+def pemakaian_terakhir(pelanggan_id):
+    data = (
+        PemakaianMeter.query
+        .filter_by(pelanggan_id=pelanggan_id)
+        .order_by(
+            PemakaianMeter.periode_tahun.desc(),
+            PemakaianMeter.periode_bulan.desc()
+        )
+        .first()
+    )
+
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "Belum ada pemakaian sebelumnya"
+        }), 404
+
+    return jsonify({
+        "success": True,
+        "meter_akhir": data.meter_akhir
+    })
