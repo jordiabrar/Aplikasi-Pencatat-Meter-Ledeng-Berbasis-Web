@@ -13,6 +13,36 @@ class Pelanggan(db.Model):
     golongan = db.Column(db.String(50))
 
 
+class Masalah(db.Model):
+    __tablename__ = "masalah"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nama_masalah = db.Column(db.String(150), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f"<Masalah {self.nama_masalah}>"
+
+
+# =========================
+# TABEL PIVOT
+# =========================
+pemakaian_masalah = db.Table(
+    "pemakaian_masalah",
+    db.Column(
+        "pemakaian_id",
+        db.Integer,
+        db.ForeignKey("pemakaian_meter.id", ondelete="CASCADE"),
+        primary_key=True
+    ),
+    db.Column(
+        "masalah_id",
+        db.Integer,
+        db.ForeignKey("masalah.id", ondelete="CASCADE"),
+        primary_key=True
+    )
+)
+
+
 class PemakaianMeter(db.Model):
     __tablename__ = "pemakaian_meter"
 
@@ -43,6 +73,12 @@ class PemakaianMeter(db.Model):
     pelanggan = db.relationship(
         "Pelanggan",
         backref="riwayat_pemakaian"
+    )
+
+    masalah = db.relationship(
+        "Masalah",
+        secondary=pemakaian_masalah,
+        backref="pemakaian_meter"
     )
 
     __table_args__ = (
