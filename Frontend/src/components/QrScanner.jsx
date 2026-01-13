@@ -11,7 +11,7 @@ function QrScanner({ onSuccess }) {
   const [manualId, setManualId] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Crop states
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -57,16 +57,16 @@ function QrScanner({ onSuccess }) {
       // Scan QR from cropped image
       const { Html5Qrcode } = await import("html5-qrcode");
       const html5QrCode = new Html5Qrcode("qr-scan-result");
-      
+
       const decodedText = await html5QrCode.scanFile(file, true);
       await fetchById(decodedText.trim());
       html5QrCode.clear();
-      
+
       // Reset crop state after successful scan
       setImageSrc(null);
       setCrop({ x: 0, y: 0 });
       setZoom(1);
-    } catch (err) {
+    } catch {
       setError("QR Code tidak terdeteksi. Pastikan gambar jelas dan mengandung QR code.");
     } finally {
       setLoading(false);
@@ -76,35 +76,34 @@ function QrScanner({ onSuccess }) {
   useEffect(() => {
     if (scannerRef.current) return;
 
+    const handleSuccess = (decodedText) => {
+      fetchById(decodedText.trim());
+    };
+
     scannerRef.current = new Html5QrcodeScanner(
       "qr-reader",
       {
         fps: 10,
         qrbox: 250, // Can be a number or { width, height } - Made simpler for better flexibility
         rememberLastUsedCamera: false,
-        videoConstraints: { 
+        videoConstraints: {
           facingMode: "environment",
-          aspectRatio: 1.0 // Square aspect ratio for QR
+          aspectRatio: 1.0, // Square aspect ratio for QR
         },
       },
       false
     );
 
-    scannerRef.current.render(
-      async (decodedText) => {
-        fetchById(decodedText.trim());
-      },
-      () => {}
-    );
+    scannerRef.current.render(handleSuccess, () => {});
 
     // Replace file input button with custom upload area
     setTimeout(() => {
-      const fileSection = document.querySelector('#qr-reader__dashboard_section_fsr');
+      const fileSection = document.querySelector("#qr-reader__dashboard_section_fsr");
       if (fileSection) {
-        fileSection.innerHTML = '';
-        
-        const uploadDiv = document.createElement('div');
-        uploadDiv.className = 'custom-upload-area';
+        fileSection.innerHTML = "";
+
+        const uploadDiv = document.createElement("div");
+        uploadDiv.className = "custom-upload-area";
         uploadDiv.style.cssText = `
           width: 100%;
           display: flex;
@@ -119,7 +118,7 @@ function QrScanner({ onSuccess }) {
           background: transparent;
           margin-top: 1rem;
         `;
-        
+
         uploadDiv.innerHTML = `
           <svg class="camera-icon" style="width: 2.5rem; height: 2.5rem; margin-bottom: 0.75rem; color: #9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -129,23 +128,23 @@ function QrScanner({ onSuccess }) {
             <span style="font-weight: 600;">Click to upload</span> foto QR code
           </p>
         `;
-        
-        uploadDiv.addEventListener('mouseenter', () => {
-          uploadDiv.style.borderColor = '#3b82f6';
-          uploadDiv.style.backgroundColor = '#eff6ff';
+
+        uploadDiv.addEventListener("mouseenter", () => {
+          uploadDiv.style.borderColor = "#3b82f6";
+          uploadDiv.style.backgroundColor = "#eff6ff";
         });
-        
-        uploadDiv.addEventListener('mouseleave', () => {
-          uploadDiv.style.borderColor = '#d1d5db';
-          uploadDiv.style.backgroundColor = 'transparent';
+
+        uploadDiv.addEventListener("mouseleave", () => {
+          uploadDiv.style.borderColor = "#d1d5db";
+          uploadDiv.style.backgroundColor = "transparent";
         });
-        
-        uploadDiv.addEventListener('click', () => {
+
+        uploadDiv.addEventListener("click", () => {
           if (fileInputRef.current) {
             fileInputRef.current.click();
           }
         });
-        
+
         fileSection.appendChild(uploadDiv);
       }
     }, 100);
@@ -158,29 +157,8 @@ function QrScanner({ onSuccess }) {
       const el = document.getElementById("qr-reader");
       if (el) el.innerHTML = "";
     };
-  }, [onSuccess]);
-
-  const handleFetchById = async (id) => {
-    if (!/^\d+$/.test(id)) {
-      setError("ID pelanggan harus berupa angka");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const res = await fetch(`${API_BASE_URL}/api/pelanggan/id/${id}`);
-      if (!res.ok) throw new Error("Pelanggan tidak ditemukan");
-
-      const data = await res.json();
-      onSuccess(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col items-center space-y-4 sm:space-y-6 py-4 sm:py-6 px-4 w-full max-w-3xl mx-auto">
@@ -213,15 +191,7 @@ function QrScanner({ onSuccess }) {
         /* Cropper for uploaded image */
         <div className="w-full space-y-4">
           <div className="relative h-[50vh] sm:h-[60vh] bg-black rounded-xl overflow-hidden shadow-lg border-2 border-gray-200">
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-            />
+            <Cropper image={imageSrc} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete} />
           </div>
 
           {/* Instructions */}
@@ -282,7 +252,7 @@ function QrScanner({ onSuccess }) {
           <h4 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-1">Input ID Manual</h4>
           <p className="text-xs sm:text-sm text-gray-500">Jika tidak memiliki QR code</p>
         </div>
-        
+
         <div className="space-y-3">
           <div className="relative">
             <svg className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -298,7 +268,7 @@ function QrScanner({ onSuccess }) {
           </div>
 
           <button
-            onClick={() => handleFetchById(manualId)}
+            onClick={() => fetchById(manualId)}
             disabled={loading || !manualId}
             className="w-full px-4 sm:px-6 py-3 sm:py-3.5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base"
           >

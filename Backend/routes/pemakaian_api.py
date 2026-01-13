@@ -11,147 +11,177 @@ pemakaian_blueprint = Blueprint("pemakaian", __name__)
 
 @pemakaian_blueprint.route("/pemakaian", methods=["POST"])
 def tambah_pemakaian():
-    data = request.form
-    upload_folder = current_app.config.get("UPLOAD_FOLDER", "uploads")
-
-    # ======================
-    # VALIDASI PETUGAS
-    # ======================
-    username_petugas = data.get("petugas")
-    if not username_petugas:
-        return jsonify({
-            "success": False,
-            "message": "Unauthorized"
-        }), 401
-
-    # ======================
-    # VALIDASI PELANGGAN
-    # ======================
-    pelanggan = Pelanggan.query.get(data.get("pelanggan_id"))
-    if not pelanggan:
-        return jsonify({
-            "success": False,
-            "message": "Pelanggan tidak ditemukan"
-        }), 404
-
-    # ======================
-    # VALIDASI METER
-    # ======================
     try:
-        meter_awal = int(data.get("meter_awal"))
-        meter_akhir = int(data.get("meter_akhir"))
-    except (TypeError, ValueError):
-        return jsonify({
-            "success": False,
-            "message": "Data meter tidak valid"
-        }), 400
+        data = request.form
+        upload_folder = current_app.config.get("UPLOAD_FOLDER", "uploads")
 
-    if meter_akhir < meter_awal:
-        return jsonify({
-            "success": False,
-            "message": "Meter akhir lebih kecil dari meter awal"
-        }), 400
+        # ======================
+        # VALIDASI PETUGAS
+        # ======================
+        username_petugas = data.get("petugas")
+        if not username_petugas:
+            return jsonify({
+                "success": False,
+                "message": "Unauthorized"
+            }), 401
 
-    # ======================
-    # VALIDASI PERIODE
-    # ======================
-    try:
-        periode_bulan = int(data.get("periode_bulan"))
-        periode_tahun = int(data.get("periode_tahun"))
-    except (TypeError, ValueError):
-        return jsonify({
-            "success": False,
-            "message": "Periode tidak valid"
-        }), 400
+        # ======================
+        # VALIDASI PELANGGAN
+        # ======================
+        pelanggan = Pelanggan.query.get(data.get("pelanggan_id"))
+        if not pelanggan:
+            return jsonify({
+                "success": False,
+                "message": "Pelanggan tidak ditemukan"
+            }), 404
 
-
-    # ======================
-    # VALIDASI MULTI MASALAH
-    # ======================
-    masalah_ids_raw = data.get("masalah_ids")
-    masalah_list = []
-
-    if masalah_ids_raw:
+        # ======================
+        # VALIDASI METER
+        # ======================
         try:
-            masalah_ids = json.loads(masalah_ids_raw)
-        except ValueError:
+            meter_awal = int(data.get("meter_awal", 0))
+            meter_akhir = int(data.get("meter_akhir", 0))
+        except (TypeError, ValueError):
             return jsonify({
                 "success": False,
-                "message": "Format masalah tidak valid"
+                "message": "Data meter tidak valid"
             }), 400
 
-        if not isinstance(masalah_ids, list):
+        if meter_awal < 0 or meter_akhir < 0:
             return jsonify({
                 "success": False,
-                "message": "Masalah harus berupa list"
+                "message": "Nilai meter tidak boleh negatif"
             }), 400
 
-        masalah_list = Masalah.query.filter(Masalah.id.in_(masalah_ids)).all()
-
-        if len(masalah_list) != len(masalah_ids):
+        if meter_akhir < meter_awal:
             return jsonify({
                 "success": False,
-                "message": "Salah satu masalah tidak ditemukan"
+                "message": "Meter akhir lebih kecil dari meter awal"
             }), 400
 
-    # ======================
-    # UPLOAD FOTO
-    # ======================
-    foto_meteran = request.files.get("foto_meteran")
-    foto_rumah = request.files.get("foto_rumah")
+        # ======================
+        # VALIDASI PERIODE
+        # ======================
+        try:
+            periode_bulan = int(data.get("periode_bulan"))
+            periode_tahun = int(data.get("periode_tahun"))
+        except (TypeError, ValueError):
+            return jsonify({
+                "success": False,
+                "message": "Periode tidak valid"
+            }), 400
 
-    meter_path = None
-    rumah_path = None
-    timestamp = int(datetime.utcnow().timestamp())
+        if periode_bulan < 1 or periode_bulan > 12:
+            return jsonify({
+                "success": False,
+                "message": "Bulan harus antara 1-12"
+            }), 400
 
-    os.makedirs(upload_folder, exist_ok=True)
+        if periode_tahun < 2000 or periode_tahun > 2100:
+            return jsonify({
+                "success": False,
+                "message": "Tahun tidak valid"
+            }), 400
 
-    if foto_meteran:
-        filename = secure_filename(foto_meteran.filename)
-        meter_path = f"meteran_{pelanggan.id}_{timestamp}_{filename}"
-        foto_meteran.save(os.path.join(upload_folder, meter_path))
 
-    if foto_rumah:
-        filename = secure_filename(foto_rumah.filename)
-        rumah_path = f"rumah_{pelanggan.id}_{timestamp}_{filename}"
-        foto_rumah.save(os.path.join(upload_folder, rumah_path))
+        # ======================
+        # VALIDASI MULTI MASALAH
+        # ======================
+        masalah_ids_raw = data.get("masalah_ids")
+        masalah_list = []
 
-    # ======================
-    # SIMPAN DATA
-    # ======================
-    pemakaian = PemakaianMeter(
-        pelanggan_id=pelanggan.id,
-        nomor_seri_meter=pelanggan.nomor_seri_meter,
-        meter_awal=meter_awal,
-        meter_akhir=meter_akhir,
-        pemakaian_kubik=meter_akhir - meter_awal,
-        periode_bulan=periode_bulan,
-        periode_tahun=periode_tahun,
-        petugas=username_petugas,
-        keterangan=data.get("keterangan"),
-        foto_meteran=meter_path,
-        foto_rumah=rumah_path,
-        tanggal_catat=datetime.utcnow(),
-    )
+        if masalah_ids_raw:
+            try:
+                masalah_ids = json.loads(masalah_ids_raw)
+            except ValueError:
+                return jsonify({
+                    "success": False,
+                    "message": "Format masalah tidak valid"
+                }), 400
+
+            if not isinstance(masalah_ids, list):
+                return jsonify({
+                    "success": False,
+                    "message": "Masalah harus berupa list"
+                }), 400
+
+            masalah_list = Masalah.query.filter(Masalah.id.in_(masalah_ids)).all()
+
+            if len(masalah_list) != len(masalah_ids):
+                return jsonify({
+                    "success": False,
+                    "message": "Salah satu masalah tidak ditemukan"
+                }), 400
+
+        # ======================
+        # UPLOAD FOTO
+        # ======================
+        foto_meteran = request.files.get("foto_meteran")
+        foto_rumah = request.files.get("foto_rumah")
+
+        meter_path = None
+        rumah_path = None
+        timestamp = int(datetime.utcnow().timestamp())
+
+        os.makedirs(upload_folder, exist_ok=True)
+
+        if foto_meteran:
+            filename = secure_filename(foto_meteran.filename)
+            meter_path = f"meteran_{pelanggan.id}_{timestamp}_{filename}"
+            foto_meteran.save(os.path.join(upload_folder, meter_path))
+
+        if foto_rumah:
+            filename = secure_filename(foto_rumah.filename)
+            rumah_path = f"rumah_{pelanggan.id}_{timestamp}_{filename}"
+            foto_rumah.save(os.path.join(upload_folder, rumah_path))
+
+        # ======================
+        # SIMPAN DATA
+        # ======================
+        pemakaian = PemakaianMeter(
+            pelanggan_id=pelanggan.id,
+            nomor_seri_meter=pelanggan.nomor_seri_meter,
+            meter_awal=meter_awal,
+            meter_akhir=meter_akhir,
+            pemakaian_kubik=meter_akhir - meter_awal,
+            periode_bulan=periode_bulan,
+            periode_tahun=periode_tahun,
+            petugas=username_petugas,
+            keterangan=data.get("keterangan"),
+            foto_meteran=meter_path,
+            foto_rumah=rumah_path,
+            tanggal_catat=datetime.utcnow(),
+        )
+        
+        if masalah_list:
+            pemakaian.masalah.extend(masalah_list)
+
+        try:
+            db.session.add(pemakaian)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Database error: {str(e)}")
+            return jsonify({
+                "success": False,
+                "message": "Gagal menyimpan pemakaian",
+                "error": str(e)
+            }), 500
+
+        return jsonify({
+            "success": True,
+            "message": "Pemakaian berhasil disimpan"
+        })
     
-    if masalah_list:
-        pemakaian.masalah.extend(masalah_list)
-
-    try:
-        db.session.add(pemakaian)
-        db.session.commit()
     except Exception as e:
-        db.session.rollback()
+        current_app.logger.error(f"Error in tambah_pemakaian: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "message": "Gagal menyimpan pemakaian",
+            "message": "Terjadi kesalahan pada server",
             "error": str(e)
         }), 500
-
-    return jsonify({
-        "success": True,
-        "message": "Pemakaian berhasil disimpan"
-    })
 
 
 @pemakaian_blueprint.route("/pemakaian/<int:pelanggan_id>/last-3", methods=["GET"])

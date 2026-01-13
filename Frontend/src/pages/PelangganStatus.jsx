@@ -164,8 +164,8 @@ function PelangganStatus() {
           </nav>
         </div>
 
-        {/* Table Content */}
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
+        {/* Table Content - Responsive */}
+        <div>
           {activeTab === "belum" ? (
             data.belum_dicatat.length === 0 ? (
               <div className="text-center py-12">
@@ -174,28 +174,55 @@ function PelangganStatus() {
                 <p className="text-gray-500 text-sm mt-1">Tidak ada pelanggan yang perlu dicatat</p>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pelanggan</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Seri Meter</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              <>
+                {/* Mobile Card View */}
+                <div className="block md:hidden space-y-3">
                   {data.belum_dicatat.map((p) => (
-                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.nama}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        <code className="bg-gray-100 px-2 py-1 rounded">{p.nomor_seri_meter}</code>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{p.alamat || "-"}</td>
-                    </tr>
+                    <div key={p.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">#{p.id}</span>
+                        <h3 className="font-semibold text-gray-900">{p.nama}</h3>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex gap-2">
+                          <span className="text-gray-500 w-20">No Seri:</span>
+                          <code className="bg-white px-2 py-0.5 rounded text-xs border">{p.nomor_seri_meter}</code>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-gray-500 w-20">Alamat:</span>
+                          <span className="text-gray-700">{p.alamat || "-"}</span>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pelanggan</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Seri Meter</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {data.belum_dicatat.map((p) => (
+                        <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.nama}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <code className="bg-gray-100 px-2 py-1 rounded">{p.nomor_seri_meter}</code>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{p.alamat || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )
           ) : data.sudah_dicatat.length === 0 ? (
             <div className="text-center py-12">
@@ -211,32 +238,62 @@ function PelangganStatus() {
               <p className="text-gray-500 text-sm mt-1">Mulai pencatatan sekarang!</p>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pelanggan</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Seri Meter</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+            <>
+              {/* Mobile Card View */}
+              <div className="block md:hidden space-y-3">
                 {data.sudah_dicatat.map((p) => (
-                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.nama}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      <code className="bg-gray-100 px-2 py-1 rounded">{p.nomor_seri_meter}</code>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{p.alamat || "-"}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <div key={p.id} className="bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">#{p.id}</span>
+                        <h3 className="font-semibold text-gray-900">{p.nama}</h3>
+                      </div>
                       <Badge variant="success">Selesai</Badge>
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 w-20">No Seri:</span>
+                        <code className="bg-white px-2 py-0.5 rounded text-xs border">{p.nomor_seri_meter}</code>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-gray-500 w-20">Alamat:</span>
+                        <span className="text-gray-700">{p.alamat || "-"}</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Pelanggan</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Seri Meter</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {data.sudah_dicatat.map((p) => (
+                      <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.nama}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          <code className="bg-gray-100 px-2 py-1 rounded">{p.nomor_seri_meter}</code>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{p.alamat || "-"}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant="success">Selesai</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </Card>

@@ -78,10 +78,10 @@ function Signup() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8">
+    <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Daftar Akun Baru</h2>
-        <p className="text-gray-600">Buat akun petugas pencatat meter</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Daftar Akun Baru</h2>
+        <p className="text-sm sm:text-base text-gray-600">Buat akun petugas pencatat meter</p>
       </div>
 
       {error && <Alert type="error" message={error} onClose={() => setError("")} className="mb-4" />}
