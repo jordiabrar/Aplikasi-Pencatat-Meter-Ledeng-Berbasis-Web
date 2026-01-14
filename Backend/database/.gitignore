@@ -1,0 +1,9 @@
+# Ignore database backups with sensitive data
+*_backup*.sql
+*_dump*.sql
+backup/
+dumps/
+
+# Keep schema files
+!schema*.sql
+!*tirta_musi*.sql
