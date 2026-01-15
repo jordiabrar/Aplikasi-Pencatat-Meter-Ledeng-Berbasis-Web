@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../api";
-import { Card, Button, Badge, Alert } from "../components/ui";
+import { Card, Button, Badge, Alert, Modal, ImageViewer } from "../components/ui";
 import { MONTHS } from "../constants";
 import { 
   ArrowLeftIcon, 
@@ -16,6 +16,12 @@ function PelangganStatus() {
   const [error, setError] = useState("");
   const [data, setData] = useState(null);
   const [activeTab, setActiveTab] = useState("belum");
+  const [selectedPelanggan, setSelectedPelanggan] = useState(null);
+  const [riwayatData, setRiwayatData] = useState([]);
+  const [loadingRiwayat, setLoadingRiwayat] = useState(false);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerData, setImageViewerData] = useState([]);
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
 
   useEffect(() => {
     fetchStatus();
@@ -37,6 +43,47 @@ function PelangganStatus() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchRiwayat = async (pelangganId) => {
+    try {
+      setLoadingRiwayat(true);
+      const res = await fetch(`${API_BASE_URL}/api/pemakaian/${pelangganId}/last-3`);
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error("Gagal mengambil riwayat");
+      }
+
+      setRiwayatData(json);
+    } catch (err) {
+      console.error("Error fetching riwayat:", err);
+      setRiwayatData([]);
+    } finally {
+      setLoadingRiwayat(false);
+    }
+  };
+
+  const handlePelangganClick = async (pelanggan) => {
+    setSelectedPelanggan(pelanggan);
+    await fetchRiwayat(pelanggan.id);
+  };
+
+  const closeModal = () => {
+    setSelectedPelanggan(null);
+    setRiwayatData([]);
+  };
+
+  const openImageViewer = (images, startIndex = 0) => {
+    setImageViewerData(images);
+    setImageViewerIndex(startIndex);
+    setImageViewerOpen(true);
+  };
+
+  const closeImageViewer = () => {
+    setImageViewerOpen(false);
+    setImageViewerData([]);
+    setImageViewerIndex(0);
   };
 
   if (loading) {
@@ -242,7 +289,11 @@ function PelangganStatus() {
               {/* Mobile Card View */}
               <div className="block md:hidden space-y-3">
                 {data.sudah_dicatat.map((p) => (
-                  <div key={p.id} className="bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors">
+                  <div 
+                    key={p.id} 
+                    className="bg-green-50 border border-green-200 rounded-lg p-4 hover:bg-green-100 transition-colors cursor-pointer"
+                    onClick={() => handlePelangganClick(p)}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">#{p.id}</span>
@@ -260,6 +311,13 @@ function PelangganStatus() {
                         <span className="text-gray-700">{p.alamat || "-"}</span>
                       </div>
                     </div>
+                    <div className="mt-2 text-xs text-blue-600 font-medium flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      Lihat Riwayat
+                    </div>
                   </div>
                 ))}
               </div>
@@ -274,6 +332,7 @@ function PelangganStatus() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No Seri Meter</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -288,6 +347,18 @@ function PelangganStatus() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge variant="success">Selesai</Badge>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handlePelangganClick(p)}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Lihat Riwayat
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -297,6 +368,158 @@ function PelangganStatus() {
           )}
         </div>
       </Card>
+
+      {/* Modal Riwayat Pemakaian */}
+      <Modal
+        isOpen={selectedPelanggan !== null}
+        onClose={closeModal}
+        title={`Riwayat Pemakaian - ${selectedPelanggan?.nama}`}
+        size="xl"
+      >
+        {loadingRiwayat ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Memuat riwayat...</p>
+            </div>
+          </div>
+        ) : riwayatData.length === 0 ? (
+          <div className="text-center py-8">
+            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="text-gray-600 font-medium">Belum ada riwayat pemakaian</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Info Pelanggan */}
+            {selectedPelanggan && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-gray-600 font-medium">ID Pelanggan:</span>
+                    <span className="ml-2 text-gray-900 font-semibold">#{selectedPelanggan.id}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 font-medium">No Seri Meter:</span>
+                    <code className="ml-2 bg-white px-2 py-1 rounded text-xs border">{selectedPelanggan.nomor_seri_meter}</code>
+                  </div>
+                  <div className="md:col-span-2">
+                    <span className="text-gray-600 font-medium">Alamat:</span>
+                    <span className="ml-2 text-gray-900">{selectedPelanggan.alamat || "-"}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Riwayat Cards */}
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
+              {riwayatData.map((item, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+                  {/* Header Periode */}
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">
+                          {MONTHS[item.periode_bulan - 1]} {item.periode_tahun}
+                        </h4>
+                        <p className="text-xs text-gray-500">Dicatat oleh: {item.petugas || "N/A"}</p>
+                      </div>
+                    </div>
+                    <Badge variant="info" size="sm">{item.pemakaian_kubik} m³</Badge>
+                  </div>
+
+                  {/* Detail Pemakaian */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Meter Awal</p>
+                      <p className="text-lg font-bold text-gray-900">{item.meter_awal}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Meter Akhir</p>
+                      <p className="text-lg font-bold text-gray-900">{item.meter_akhir}</p>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-3 col-span-2 md:col-span-1">
+                      <p className="text-xs text-blue-600 mb-1">Pemakaian</p>
+                      <p className="text-lg font-bold text-blue-700">{item.pemakaian_kubik} m³</p>
+                    </div>
+                  </div>
+
+                  {/* Masalah */}
+                  {item.masalah && item.masalah.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-2">Masalah:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {item.masalah.map((m, idx) => (
+                          <Badge key={idx} variant="warning" size="sm">{m}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Foto */}
+                  {(item.foto_meteran || item.foto_rumah) && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {item.foto_meteran && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Foto Meteran</p>
+                          <img
+                            src={item.foto_meteran}
+                            alt="Meteran"
+                            className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
+                            onClick={() => {
+                              const images = [];
+                              if (item.foto_meteran) {
+                                images.push({ url: item.foto_meteran, label: `Foto Meteran - ${MONTHS[item.periode_bulan - 1]} ${item.periode_tahun}` });
+                              }
+                              if (item.foto_rumah) {
+                                images.push({ url: item.foto_rumah, label: `Foto Rumah - ${MONTHS[item.periode_bulan - 1]} ${item.periode_tahun}` });
+                              }
+                              openImageViewer(images, 0);
+                            }}
+                          />
+                        </div>
+                      )}
+                      {item.foto_rumah && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-2">Foto Rumah</p>
+                          <img
+                            src={item.foto_rumah}
+                            alt="Rumah"
+                            className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:scale-105 transition-transform cursor-pointer"
+                            onClick={() => {
+                              const images = [];
+                              if (item.foto_meteran) {
+                                images.push({ url: item.foto_meteran, label: `Foto Meteran - ${MONTHS[item.periode_bulan - 1]} ${item.periode_tahun}` });
+                              }
+                              if (item.foto_rumah) {
+                                images.push({ url: item.foto_rumah, label: `Foto Rumah - ${MONTHS[item.periode_bulan - 1]} ${item.periode_tahun}` });
+                              }
+                              openImageViewer(images, 1);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Image Viewer */}
+      {imageViewerOpen && (
+        <ImageViewer
+          images={imageViewerData}
+          initialIndex={imageViewerIndex}
+          onClose={closeImageViewer}
+        />
+      )}
     </div>
   );
 }
