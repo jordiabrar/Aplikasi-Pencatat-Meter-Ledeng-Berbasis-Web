@@ -35,48 +35,88 @@ Aplikasi web untuk pencatatan pembacaan meter air menggunakan teknologi OCR (Opt
 ## 📁 Struktur Proyek
 
 ```
-.
+sistem-pencatatan-meter/
 ├── Backend/
-│   ├── routes/           # API endpoints
-│   │   ├── auth_api.py
-│   │   ├── pelanggan_api.py
-│   │   ├── pemakaian_api.py
-│   │   └── seri_meter.py
-│   ├── utils/            # Helper functions
+│   ├── routes/              # API endpoints
+│   │   ├── __init__.py
+│   │   ├── auth_api.py      # Authentication endpoints
+│   │   ├── pelanggan_api.py # Customer data endpoints
+│   │   ├── pemakaian_api.py # Usage recording endpoints
+│   │   └── seri_meter.py    # Meter serial OCR endpoints
+│   ├── utils/               # Helper functions
+│   │   ├── __init__.py
 │   │   └── image_processing.py
-│   ├── app.py            # Application factory
-│   ├── config.py         # Configuration
-│   ├── db.py             # Database initialization
-│   ├── models.py         # Database models
-│   ├── requirements.txt  # Python dependencies
-│   ├── .env.example      # Environment variables template
-│   └── uploads/          # Uploaded images
+│   ├── database/            # Database files
+│   │   ├── meter_tirta_musi (4).sql  # Database schema & sample data
+│   │   └── README.md        # Database documentation
+│   ├── uploads/             # Uploaded images (meter & house photos)
+│   ├── app.py               # Application factory & main entry point
+│   ├── config.py            # Configuration settings
+│   ├── db.py                # Database connection & initialization
+│   ├── models.py            # SQLAlchemy database models
+│   ├── requirements.txt     # Python dependencies
+│   ├── .env.example         # Environment variables template
+│   └── .gitignore           # Git ignore rules for backend
 │
-└── Frontend/
-    ├── src/
-    │   ├── components/   # Reusable components
-    │   │   ├── ui/       # UI components (Button, Input, Card, etc)
-    │   │   ├── QrGenerator.jsx
-    │   │   ├── QrScanner.jsx
-    │   │   └── SeriScanner.jsx
-    │   ├── pages/        # Page components
-    │   │   ├── Login.jsx
-    │   │   ├── Signup.jsx
-    │   │   ├── ScanPage.jsx
-    │   │   ├── InputKubik.jsx
-    │   │   └── PelangganStatus.jsx
-    │   ├── layouts/      # Layout components
-    │   │   ├── AuthLayout.jsx
-    │   │   └── MainLayout.jsx
-    │   ├── hooks/        # Custom React hooks
-    │   │   ├── useAuth.js
-    │   │   └── useFetch.js
-    │   ├── utils/        # Helper functions
-    │   ├── constants/    # Constants and configs
-    │   ├── api.js        # API configuration
-    │   └── App.jsx       # Main app component
-    ├── .env.example      # Environment variables template
-    └── package.json      # Node dependencies
+├── Frontend/
+│   ├── src/
+│   │   ├── components/      # Reusable components
+│   │   │   ├── ui/          # UI components library
+│   │   │   │   ├── Alert.jsx
+│   │   │   │   ├── Badge.jsx
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Card.jsx
+│   │   │   │   ├── ImageViewer.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── QrGenerator.jsx
+│   │   │   ├── QrScanner.jsx
+│   │   │   └── SeriScanner.jsx
+│   │   ├── pages/           # Page components
+│   │   │   ├── Login.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   ├── ScanPage.jsx
+│   │   │   ├── InputKubik.jsx
+│   │   │   └── PelangganStatus.jsx
+│   │   ├── layouts/         # Layout components
+│   │   │   ├── AuthLayout.jsx
+│   │   │   └── MainLayout.jsx
+│   │   ├── hooks/           # Custom React hooks
+│   │   │   ├── useAuth.js
+│   │   │   └── useFetch.js
+│   │   ├── utils/           # Helper functions
+│   │   │   ├── cropImage.js
+│   │   │   └── normalizeImage.js
+│   │   ├── constants/       # Constants and configs
+│   │   │   └── index.js
+│   │   ├── api.js           # API configuration & Axios setup
+│   │   ├── App.jsx          # Main app component
+│   │   ├── App.css          # App styles
+│   │   ├── main.jsx         # React entry point
+│   │   ├── index.css        # Global styles
+│   │   ├── CameraCapture.jsx # Camera capture component
+│   │   └── ImageCropper.jsx  # Image cropping component
+│   ├── public/              # Static assets
+│   │   ├── clock-history.svg
+│   │   ├── water-outline-svgrepo-com.svg
+│   │   ├── water.svg
+│   │   └── vite.svg
+│   ├── package.json         # Node dependencies
+│   ├── package-lock.json    # Locked dependencies
+│   ├── vite.config.js       # Vite configuration
+│   ├── tailwind.config.js   # Tailwind CSS configuration
+│   ├── postcss.config.js    # PostCSS configuration
+│   ├── eslint.config.js     # ESLint configuration
+│   ├── .env.example         # Environment variables template
+│   ├── .gitignore           # Git ignore rules for frontend
+│   └── index.html           # HTML entry point
+│
+├── uploads/                 # Global uploads folder
+├── README.md                # Project documentation (this file)
+├── INSTALLATION.md          # Detailed installation guide
+├── LICENSE                  # License information
+└── .gitignore               # Root git ignore rules
 ```
 
 ## 🚀 Setup & Instalasi
