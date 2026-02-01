@@ -146,7 +146,6 @@ sistem-pencatatan-meter/
    ```
 
 3. **Aktifkan virtual environment**
-
    - Windows:
      ```bash
      venv\Scripts\activate
